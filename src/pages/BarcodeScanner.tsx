@@ -149,7 +149,13 @@ export default function BarcodeScanner() {
       {/* Header */}
       <div className="p-4 flex items-center gap-4 bg-gray-800 shadow-md z-10">
         <button 
-          onClick={() => navigate("/")}
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate("/", { replace: true });
+            }
+          }}
           className="p-2 hover:bg-gray-700 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />

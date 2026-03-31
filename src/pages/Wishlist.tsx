@@ -21,7 +21,13 @@ export default function Wishlist() {
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => navigate("/")} 
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate("/", { replace: true });
+            }
+          }} 
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6 text-gray-600" />

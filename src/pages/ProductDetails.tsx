@@ -183,7 +183,13 @@ export default function ProductDetails() {
   return (
     <div className="max-w-5xl mx-auto space-y-12">
       <button 
-        onClick={() => navigate("/")} 
+        onClick={() => {
+          if (window.history.state && window.history.state.idx > 0) {
+            navigate(-1);
+          } else {
+            navigate("/", { replace: true });
+          }
+        }} 
         className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 font-bold transition-colors group"
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

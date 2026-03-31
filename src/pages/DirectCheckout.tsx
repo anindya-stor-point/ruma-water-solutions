@@ -536,7 +536,13 @@ export default function DirectCheckout() {
 
                   <div className="flex gap-4">
                     <button 
-                      onClick={() => navigate("/")}
+                      onClick={() => {
+                        if (window.history.state && window.history.state.idx > 0) {
+                          navigate(-1);
+                        } else {
+                          navigate("/", { replace: true });
+                        }
+                      }}
                       className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
                     >
                       {t('checkout.back')}

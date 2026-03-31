@@ -24,7 +24,13 @@ export default function TermsAndConditions() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100">
       <button 
-        onClick={() => navigate("/profile")}
+        onClick={() => {
+          if (window.history.state && window.history.state.idx > 0) {
+            navigate(-1);
+          } else {
+            navigate("/profile", { replace: true });
+          }
+        }}
         className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold mb-6"
       >
         <ChevronLeft className="w-5 h-5" />
