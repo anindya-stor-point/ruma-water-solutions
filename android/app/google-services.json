@@ -14,6 +14,59 @@
       },
       "oauth_client": [
         {
+          "client_id": "449552278886-7setv4ltfaato8ce818ecaftords41fn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruma.watersolutions",
+            "certificate_hash": "b568530db5ca78282e1fd3f6b7ad8878aac2394c"
+          }
+        },
+        {
+          "client_id": "449552278886-ak62ful85hvcgvr52n7vpl6odp026q2f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruma.watersolutions",
+            "certificate_hash": "748e653c470f610374165c53e89a134d93e3a434"
+          }
+        },
+        {
+          "client_id": "449552278886-nian9a6jig8fbsiqf0rid0nms53b6q4t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruma.watersolutions",
+            "certificate_hash": "3b63597e7128c751dfd0294408d9af41693f37ee"
+          }
+        },
+        {
+          "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-8K8j0LsIO3iryxMYY77jjEnzKgCxMgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449552278886:android:38de093bfd5931a15894a7",
+        "android_client_info": {
+          "package_name": "com.rumawatersolutions.app"
+        }
+      },
+      "oauth_client": [
+        {
           "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
           "client_type": 3
         }
