@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ruma Water Solutions</string>
+    <string name="title_activity_main">Ruma Water Solutions</string>
+    <string name="package_name">com.ruma.watersolutions</string>
+    <string name="custom_url_scheme">com.ruma.watersolutions</string>
+</resources>

@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase User ID" },
+        "displayName": { "type": "string", "description": "Full Name" },
+        "email": { "type": "string", "format": "email", "description": "User's Email" },
+        "photoURL": { "type": "string", "description": "Profile Picture URL" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role" },
+        "createdAt": { "type": "timestamp", "description": "Server Timestamp" }
+      },
+      "required": ["uid", "displayName", "email", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product in the store",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name", "price", "stock", "category", "imageUrl", "description"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An order placed by a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "deletedByCustomer": { "type": "boolean", "description": "Whether the customer has hidden this order" },
+        "deletedByAdmin": { "type": "boolean", "description": "Whether the admin has hidden this order" }
+      },
+      "required": ["userId", "total", "status", "createdAt"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global app settings",
+      "type": "object",
+      "properties": {
+        "appName": { "type": "string" },
+        "aboutUs": { "type": "string" },
+        "termsAndConditions": { "type": "string" },
+        "paymentMethods": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["appName", "aboutUs", "termsAndConditions", "paymentMethods"]
+    },
+    "WishlistItem": {
+      "title": "WishlistItem",
+      "description": "A product saved by a user",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "addedAt": { "type": "timestamp" }
+      },
+      "required": ["productId", "name", "price", "imageUrl", "addedAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A review for a product",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPicture": { "type": "string" },
+        "rating": { "type": "number" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "userName", "rating", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles"
+    },
+    "/products/{productId}": { "schema": { "$ref": "#/entities/Product" }, "description": "Products collection" },
+    "/products/{productId}/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Product reviews"
+    },
+    "/orders/{orderId}": { "schema": { "$ref": "#/entities/Order" }, "description": "Orders collection" },
+    "/appSettings/{settingId}": { "schema": { "$ref": "#/entities/Settings" }, "description": "App settings document" },
+    "/users/{userId}/wishlist/{productId}": {
+      "schema": { "$ref": "#/entities/WishlistItem" },
+      "description": "User's wishlist"
+    }
+  }
+}

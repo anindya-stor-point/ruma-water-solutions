@@ -1,0 +1,59 @@
+{
+  "users": [],
+  "products": [
+    {
+      "id": "p1",
+      "name": "Wireless Headphones",
+      "description": "High-quality noise-canceling headphones.",
+      "price": 199.99,
+      "category": "Electronics",
+      "imageUrl": "https://picsum.photos/seed/headphones/400/400",
+      "stock": 49
+    },
+    {
+      "id": "p2",
+      "name": "Mechanical Keyboard",
+      "description": "RGB mechanical keyboard with tactile switches.",
+      "price": 129.5,
+      "category": "Electronics",
+      "imageUrl": "https://picsum.photos/seed/keyboard/400/400",
+      "stock": 20
+    },
+    {
+      "id": "p3",
+      "name": "Flexon Water Tank",
+      "description": "Durable and high-capacity water storage tank.",
+      "price": 4500,
+      "category": "Water Solutions",
+      "imageUrl": "https://picsum.photos/seed/watertank/400/400",
+      "stock": 15
+    }
+  ],
+  "orders": [
+    {
+      "id": "o_1774486213879",
+      "userId": "TaJkMxi3QXhkkToPDi0DyonGCTt2",
+      "items": [
+        {
+          "productId": "p1",
+          "quantity": 1,
+          "price": 199.99
+        }
+      ],
+      "total": 199.99,
+      "status": "pending",
+      "createdAt": "2026-03-26T00:50:13.879Z"
+    }
+  ],
+  "reviews": [],
+  "settings": {
+    "appName": "Ruma",
+    "tagline": "water solutions",
+    "aboutUs": "Welcome to Ruma Water Solutions, providing clean and safe water for everyone.",
+    "paymentMethods": [
+      "Credit Card",
+      "PayPal"
+    ],
+    "adminPassword": "Anindya@0333"
+  }
+}

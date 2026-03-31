@@ -1,0 +1,7 @@
+{
+  "name": "My E-Commerce App",
+  "description": "A full-stack e-commerce platform with user and admin portals, real-time updates, and Google OAuth.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

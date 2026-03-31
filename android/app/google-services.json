@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "449552278886",
+    "project_id": "just-airport-424401-e8",
+    "storage_bucket": "just-airport-424401-e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449552278886:android:7b1ddbe9a950975a5894a7",
+        "android_client_info": {
+          "package_name": "com.ruma.watersolutions"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-8K8j0LsIO3iryxMYY77jjEnzKgCxMgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
