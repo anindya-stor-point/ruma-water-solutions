@@ -7,6 +7,8 @@ interface RemoteConfigValues {
   promoBannerText: string;
   showPromoBanner: boolean;
   contactPhone: string;
+  latestVersion: string;
+  updateUrl: string;
   isLoading: boolean;
 }
 
@@ -18,6 +20,8 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     promoBannerText: '',
     showPromoBanner: false,
     contactPhone: '+880123456789',
+    latestVersion: '1.0.0',
+    updateUrl: '',
     isLoading: true,
   });
 
@@ -33,6 +37,8 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
           'promo_banner_text': '',
           'show_promo_banner': false,
           'contact_phone': '+880123456789',
+          'latest_version': '1.0.0',
+          'update_url': '',
         };
 
         // Fetch and activate
@@ -44,6 +50,8 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
           promoBannerText: getString(remoteConfig, 'promo_banner_text'),
           showPromoBanner: getBoolean(remoteConfig, 'show_promo_banner'),
           contactPhone: getString(remoteConfig, 'contact_phone'),
+          latestVersion: getString(remoteConfig, 'latest_version'),
+          updateUrl: getString(remoteConfig, 'update_url'),
           isLoading: false,
         });
       } catch (error) {

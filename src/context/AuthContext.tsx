@@ -10,6 +10,7 @@ export interface User {
   displayName: string;
   photoURL: string;
   role: "user" | "admin";
+  emailVerified: boolean;
   createdAt?: any;
 }
 
@@ -18,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  sendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,9 +39,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Listen to user document changes
           unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
-              setUser(docSnap.data() as User);
+              const userData = docSnap.data() as User;
+              setUser({
+                ...userData,
+                emailVerified: firebaseUser.emailVerified
+              });
             } else {
-              setUser(null);
+              // If user document doesn't exist yet (e.g. during signup), 
+              // we still want to know they are logged in but unverified
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                displayName: firebaseUser.displayName || "",
+                photoURL: firebaseUser.photoURL || "",
+                role: "user",
+                emailVerified: firebaseUser.emailVerified
+              });
             }
             setLoading(false);
           }, (error) => {
@@ -65,6 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      const { sendEmailVerification } = await import("firebase/auth");
+      await sendEmailVerification(auth.currentUser);
+    }
+  };
+
   const logout = async () => {
     await signOut(auth);
     sessionStorage.removeItem("admin_verified");
@@ -72,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, setUser, sendVerificationEmail }}>
       {loading ? (
         <div className="min-h-screen flex items-center justify-center">
           <WaterLoadingAnimation />

@@ -135,9 +135,9 @@ export default function Profile() {
       icon: <Globe className="w-5 h-5" />, 
       label: t('profile.language'), 
       value: language === 'en' ? t('profile.english') : t('profile.bengali'), 
-      onClick: () => setShowLanguageModal(true) 
+      onClick: () => navigate('/language') 
     },
-    { icon: <Headset className="w-5 h-5" />, label: t('profile.customer_care'), onClick: () => setShowCustomerCareModal(true) },
+    { icon: <Headset className="w-5 h-5" />, label: t('profile.customer_care'), onClick: () => navigate('/customer-care') },
     { icon: <FileText className="w-5 h-5" />, label: t('profile.terms'), onClick: () => navigate('/terms') },
     { icon: <Info className="w-5 h-5" />, label: t('profile.about'), onClick: () => navigate('/about') },
   ];
@@ -329,89 +329,6 @@ export default function Profile() {
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-black py-4 rounded-2xl transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                 >
                   {t('profile.delete_cancel')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Customer Care Modal */}
-      {showCustomerCareModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black text-gray-900">{t('profile.customer_care')}</h2>
-                <button 
-                  onClick={() => setShowCustomerCareModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <CustomerCare />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Language Selection Modal */}
-      {showLanguageModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black text-gray-900">{t('profile.select_language')}</h2>
-                <button 
-                  onClick={() => setShowLanguageModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <ChevronRight className="w-6 h-6 rotate-90" />
-                </button>
-              </div>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleLanguageSelect('en')}
-                  className={`w-full flex items-center justify-between p-6 rounded-2xl border-2 transition-all ${
-                    language === 'en' 
-                      ? 'border-indigo-600 bg-indigo-50/50' 
-                      : 'border-gray-100 hover:border-indigo-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black ${
-                      language === 'en' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'
-                    }`}>
-                      EN
-                    </div>
-                    <span className={`text-lg font-bold ${language === 'en' ? 'text-indigo-900' : 'text-gray-700'}`}>
-                      {t('profile.english')}
-                    </span>
-                  </div>
-                  {language === 'en' && <Check className="w-6 h-6 text-indigo-600" />}
-                </button>
-
-                <button
-                  onClick={() => handleLanguageSelect('bn')}
-                  className={`w-full flex items-center justify-between p-6 rounded-2xl border-2 transition-all ${
-                    language === 'bn' 
-                      ? 'border-indigo-600 bg-indigo-50/50' 
-                      : 'border-gray-100 hover:border-indigo-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black ${
-                      language === 'bn' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'
-                    }`}>
-                      BN
-                    </div>
-                    <span className={`text-lg font-bold ${language === 'bn' ? 'text-indigo-900' : 'text-gray-700'}`}>
-                      {t('profile.bengali')}
-                    </span>
-                  </div>
-                  {language === 'bn' && <Check className="w-6 h-6 text-indigo-600" />}
                 </button>
               </div>
             </div>

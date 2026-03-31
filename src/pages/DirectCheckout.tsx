@@ -26,19 +26,24 @@ interface Product {
 }
 
 export default function DirectCheckout() {
-  const { id } = useParams<{ id: string }>();
+  const { id, step: stepParam } = useParams<{ id: string, step: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const { t } = useLanguage();
   
+  const step = parseInt(stepParam || "1") as 1 | 2 | 3;
+
+  const setStep = (newStep: number) => {
+    navigate(`/checkout/${id}/${newStep}`);
+  };
+
   const [product, setProduct] = useState<Product | null>(() => {
     return (location.state as any)?.product || null;
   });
 
   const [quantity, setQuantity] = useState<number>(() => {
-    const urlId = window.location.hash.split('/').filter(Boolean).pop();
-    const savedQuantity = localStorage.getItem(`checkout_quantity_${urlId}`);
+    const savedQuantity = localStorage.getItem(`checkout_quantity_${id}`);
     
     if (savedQuantity) {
       return parseInt(savedQuantity);
@@ -57,28 +62,11 @@ export default function DirectCheckout() {
     }
   }, [product]);
 
-  const [step, setStep] = useState<1 | 2 | 3>(() => {
-    const stateStep = (location.state as any)?.step;
-    if (stateStep) return stateStep;
-    
-    const urlId = window.location.hash.split('/').filter(Boolean).pop();
-    const savedStep = localStorage.getItem(`checkout_step_${urlId}`);
-    return savedStep ? (parseInt(savedStep) as 1 | 2 | 3) : 1;
-  });
-
   useEffect(() => {
     if (id) {
-      localStorage.setItem(`checkout_step_${id}`, step.toString());
       localStorage.setItem(`checkout_quantity_${id}`, quantity.toString());
     }
-  }, [step, quantity, id]);
-
-  // Clear step on unmount or completion
-  useEffect(() => {
-    return () => {
-      // We keep it for refresh, but maybe clear it when order is placed
-    };
-  }, []);
+  }, [quantity, id]);
   const MIN_ORDER_LIMIT = product?.minOrderLimit || 24;
   const numericPrice = parseFloat(String(product?.price || '0').replace(/[^0-9.]/g, '')) || 0;
   const totalAmount = numericPrice * quantity;

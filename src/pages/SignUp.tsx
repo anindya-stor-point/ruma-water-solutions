@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider, safeStringify, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
@@ -44,6 +44,9 @@ export default function SignUp() {
         displayName: name,
         photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`,
       });
+
+      // Send verification email
+      await sendEmailVerification(userCredential.user);
       
       // Update the Firestore document with the correct name
       await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -66,7 +69,10 @@ export default function SignUp() {
         safeError("Failed to send welcome email:", notifyError);
       }
       
-      navigate(from, { replace: true });
+      setError("Verification email sent! Please check your inbox and verify your email before logging in.");
+      // We don't navigate yet, we want them to verify first.
+      // Or we can navigate to a VerifyEmail page.
+      navigate("/verify-email");
     } catch (err: any) {
       setError(err.message || "Failed to sign up");
     } finally {

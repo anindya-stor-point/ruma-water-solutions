@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { signInWithEmailAndPassword, signInWithPopup, signOut, sendEmailVerification } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, googleProvider, safeStringify, db, safeLog, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { AlertCircle } from "lucide-react";
@@ -92,6 +92,14 @@ export default function Login() {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       
+      if (!result.user.emailVerified) {
+        setError("Please verify your email before logging in. Check your inbox.");
+        await sendEmailVerification(result.user);
+        await signOut(auth);
+        setLoading(false);
+        return;
+      }
+
       // Check if user exists in Firestore
       const exists = await checkUserExists(result.user.uid);
       if (!exists) {
@@ -116,18 +124,25 @@ export default function Login() {
     setLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
       
       // Check if user exists in Firestore
-      const exists = await checkUserExists(result.user.uid);
-      if (!exists) {
-        // If user doesn't exist in Firestore, sign them out and show modal
-        await signOut(auth);
-        setShowSignupModal(true);
-        setLoading(false);
-        return;
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        // Create user document for new Google users
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          role: "user",
+          createdAt: serverTimestamp(),
+        });
       }
 
-      await notifyLogin(result.user);
+      await notifyLogin(user);
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || "Failed to log in with Google");

@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, useLocation, Link } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
 import { CartProvider } from "./context/CartContext";
@@ -12,7 +12,9 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { RemoteConfigProvider } from "./context/RemoteConfigContext";
 import { Toaster } from "sonner";
+import { AlertCircle } from "lucide-react";
 import Navbar from "./components/Navbar";
+import UpdateChecker from "./components/UpdateChecker";
 import SplashScreen from "./components/SplashScreen";
 import Home from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
@@ -24,6 +26,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AuthCallback from "./pages/AuthCallback";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import VerifyEmail from "./pages/VerifyEmail";
+import LanguageSelection from "./pages/LanguageSelection";
 import DirectCheckout from "./pages/DirectCheckout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import NotificationHandler from "./components/NotificationHandler";
@@ -33,8 +37,27 @@ import About from "./pages/About";
 import CustomerCare from "./pages/CustomerCare";
 import Wishlist from "./pages/Wishlist";
 import OrderHistory from "./pages/OrderHistory";
+import { useAuth } from "./context/AuthContext";
 import { db, safeLog, safeError } from "./firebase";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
+import { Navigate } from "react-router-dom";
+
+const ProtectedRoute = ({ children, requireVerification = true }: { children: React.ReactNode, requireVerification?: boolean }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return null;
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireVerification && !user.emailVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 function MasterNavigationListener() {
   const location = useLocation();
@@ -99,30 +122,71 @@ function SeedData() {
   return null;
 }
 
+function AppContent({ isRouteReady }: { isRouteReady: boolean }) {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  return (
+    <>
+      <MasterNavigationListener />
+      {isRouteReady && (
+        <>
+          <SeedData />
+          <NotificationHandler />
+          <Toaster position="top-center" richColors />
+          <UpdateChecker />
+          {user && !user.emailVerified && location.pathname !== "/verify-email" && (
+            <div className="bg-amber-50 border-b border-amber-100 py-3 px-4 text-center animate-in fade-in slide-in-from-top duration-500">
+              <p className="text-amber-800 text-sm font-bold flex items-center justify-center gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+                Your email is not verified. 
+                <Link to="/verify-email" className="underline hover:text-amber-900 ml-1">
+                  Click here to verify your account
+                </Link>
+              </p>
+            </div>
+          )}
+          <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+            <Navbar />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Routes>
+                <Route path="/" element={<SplashScreen />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/customer-care" element={<CustomerCare />} />
+                <Route path="/scan" element={<BarcodeScanner />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/language" element={<ProtectedRoute requireVerification={false}><LanguageSelection /></ProtectedRoute>} />
+                
+                {/* Protected Routes */}
+                <Route path="/checkout/:id/:step" element={<ProtectedRoute><DirectCheckout /></ProtectedRoute>} />
+                <Route path="/checkout/:id" element={<Navigate to="1" replace />} />
+                <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
+                <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute requireVerification={false}><Profile /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute requireVerification={false}><Settings /></ProtectedRoute>} />
+              </Routes>
+            </main>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function App() {
   const [isRouteReady, setIsRouteReady] = useState(false);
 
   useEffect(() => {
-    try {
-      // High-Priority Restoration: Check if saved_navigation_state exists
-      if (typeof localStorage !== 'undefined') {
-        const savedPath = localStorage.getItem("saved_navigation_state");
-        const currentHash = window.location.hash;
-        
-        // Check if we are at the root or have no specific route yet
-        const isAtRoot = !currentHash || currentHash === "#/" || currentHash === "#";
-
-        // If we are at root and have a saved specific route, restore it immediately
-        if (isAtRoot && savedPath && savedPath !== "#/" && savedPath !== "#") {
-          // Force the app to that specific page immediately
-          window.location.hash = savedPath;
-        }
-      }
-    } catch (error) {
-      safeError("App: Restoration failed", error);
-    } finally {
-      setIsRouteReady(true);
-    }
+    setIsRouteReady(true);
   }, []);
 
   return (
@@ -134,39 +198,7 @@ export default function App() {
               <CartProvider>
                 <WishlistProvider>
                   <Router>
-                    <MasterNavigationListener />
-                    {isRouteReady && (
-                      <>
-                        <SeedData />
-                        <NotificationHandler />
-                        <Toaster position="top-center" richColors />
-                        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-                          <Navbar />
-                          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <Routes>
-                              <Route path="/" element={<SplashScreen />} />
-                              <Route path="/home" element={<Home />} />
-                              <Route path="/product/:id" element={<ProductDetails />} />
-                              <Route path="/checkout/:id" element={<DirectCheckout />} />
-                              <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-                              <Route path="/wishlist" element={<Wishlist />} />
-                              <Route path="/orders" element={<OrderHistory />} />
-                              <Route path="/cart" element={<Cart />} />
-                              <Route path="/terms" element={<TermsAndConditions />} />
-                              <Route path="/about" element={<About />} />
-                              <Route path="/customer-care" element={<CustomerCare />} />
-                              <Route path="/profile" element={<Profile />} />
-                              <Route path="/scan" element={<BarcodeScanner />} />
-                              <Route path="/settings" element={<Settings />} />
-                              <Route path="/admin/*" element={<AdminDashboard />} />
-                              <Route path="/auth/callback" element={<AuthCallback />} />
-                              <Route path="/login" element={<Login />} />
-                              <Route path="/signup" element={<SignUp />} />
-                            </Routes>
-                          </main>
-                        </div>
-                      </>
-                    )}
+                    <AppContent isRouteReady={isRouteReady} />
                   </Router>
                 </WishlistProvider>
               </CartProvider>
