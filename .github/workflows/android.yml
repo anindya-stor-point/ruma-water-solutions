@@ -36,6 +36,11 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Fix Gradle Wrapper
+        run: |
+          mkdir -p android/gradle/wrapper
+          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar -o android/gradle/wrapper/gradle-wrapper.jar
+
       - name: Build Android APK
         run: |
           cd android
