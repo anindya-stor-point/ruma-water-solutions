@@ -67,6 +67,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "449552278886-7lfcer0jj7giafd9pbr83hh5alkt099k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rumawatersolutions.app",
+            "certificate_hash": "748e653c470f610374165c53e89a134d93e3a434"
+          }
+        },
+        {
+          "client_id": "449552278886-aeqq7dg18sqcm3l9741qmri4rpnn4gai.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rumawatersolutions.app",
+            "certificate_hash": "3b63597e7128c751dfd0294408d9af41693f37ee"
+          }
+        },
+        {
+          "client_id": "449552278886-gdavka1tgepkstv3c8m1etb2du79ngit.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rumawatersolutions.app",
+            "certificate_hash": "b568530db5ca78282e1fd3f6b7ad8878aac2394c"
+          }
+        },
+        {
           "client_id": "449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com",
           "client_type": 3
         }

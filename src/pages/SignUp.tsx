@@ -86,6 +86,11 @@ export default function SignUp() {
     setLoading(true);
     try {
       const googleUser = await GoogleAuth.signIn();
+      
+      if (!googleUser.authentication?.idToken) {
+        throw new Error("No ID token found from Google Auth. Please try again.");
+      }
+
       const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
       const result = await signInWithCredential(auth, credential);
       const user = result.user;
@@ -107,7 +112,9 @@ export default function SignUp() {
       
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || "Failed to sign up with Google");
+      console.error("Google Auth Error:", err);
+      // Display the full error message to help debug DEVELOPER_ERROR or other issues
+      setError(`Google Sign Up Error: ${err.message || JSON.stringify(err) || "Failed to sign up"}`);
     } finally {
       setLoading(false);
     }
