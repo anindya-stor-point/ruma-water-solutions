@@ -5,6 +5,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, safeStringify, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -85,15 +86,22 @@ export default function SignUp() {
     setError("");
     setLoading(true);
     try {
-      const googleUser = await GoogleAuth.signIn();
+      let user;
       
-      if (!googleUser.authentication?.idToken) {
-        throw new Error("No ID token found from Google Auth. Please try again.");
+      if (Capacitor.isNativePlatform()) {
+        const googleUser = await GoogleAuth.signIn();
+        if (!googleUser.authentication?.idToken) {
+          throw new Error("No ID token found from Google Auth. Please try again.");
+        }
+        const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+        const result = await signInWithCredential(auth, credential);
+        user = result.user;
+      } else {
+        // Use Firebase popup for web
+        const provider = new GoogleAuthProvider();
+        const result = await import("firebase/auth").then(m => m.signInWithPopup(auth, provider));
+        user = result.user;
       }
-
-      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
-      const result = await signInWithCredential(auth, credential);
-      const user = result.user;
       
       // Create user document if it doesn't exist
       const userDocRef = doc(db, "users", user.uid);

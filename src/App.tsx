@@ -41,6 +41,8 @@ import { useAuth } from "./context/AuthContext";
 import { db, safeLog, safeError } from "./firebase";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
 import { Navigate } from "react-router-dom";
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
 const ProtectedRoute = ({ children, requireVerification = true }: { children: React.ReactNode, requireVerification?: boolean }) => {
   const { user, loading } = useAuth();
@@ -186,6 +188,15 @@ export default function App() {
   const [isRouteReady, setIsRouteReady] = useState(false);
 
   useEffect(() => {
+    // Initialize Google Auth for web and native
+    GoogleAuth.initialize({
+      clientId: '449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com',
+      scopes: ['profile', 'email'],
+      grantOfflineAccess: true,
+    }).catch((err) => {
+      safeError("GoogleAuth initialization failed:", err);
+    });
+    
     setIsRouteReady(true);
   }, []);
 

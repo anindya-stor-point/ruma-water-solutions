@@ -6,6 +6,7 @@ import { auth, safeStringify, db, safeLog, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { AlertCircle } from "lucide-react";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -127,15 +128,22 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const googleUser = await GoogleAuth.signIn();
+      let user;
       
-      if (!googleUser.authentication?.idToken) {
-        throw new Error("No ID token found from Google Auth. Please try again.");
+      if (Capacitor.isNativePlatform()) {
+        const googleUser = await GoogleAuth.signIn();
+        if (!googleUser.authentication?.idToken) {
+          throw new Error("No ID token found from Google Auth. Please try again.");
+        }
+        const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+        const result = await signInWithCredential(auth, credential);
+        user = result.user;
+      } else {
+        // Use Firebase popup for web
+        const provider = new GoogleAuthProvider();
+        const result = await import("firebase/auth").then(m => m.signInWithPopup(auth, provider));
+        user = result.user;
       }
-
-      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
-      const result = await signInWithCredential(auth, credential);
-      const user = result.user;
 
       // Check if user exists in Firestore
       const userDocRef = doc(db, "users", user.uid);
@@ -169,6 +177,10 @@ export default function Login() {
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 w-full max-w-md">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">{t('login.title')}</h2>
         
+        <div className="text-xs text-center text-gray-400 mb-4">
+          Platform: {Capacitor.getPlatform()} | Native: {Capacitor.isNativePlatform() ? 'Yes' : 'No'}
+        </div>
+
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium">
             {error}
