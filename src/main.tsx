@@ -3,6 +3,14 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { safeError } from './firebase';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+
+// Initialize Google Auth for web
+GoogleAuth.initialize({
+  clientId: '449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com',
+  scopes: ['profile', 'email'],
+  grantOfflineAccess: true,
+});
 
 // Global error handlers to catch and log errors safely
 window.onerror = (message, source, lineno, colno, error) => {

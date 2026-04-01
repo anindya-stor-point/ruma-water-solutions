@@ -4,4 +4,5 @@
     <string name="title_activity_main">Ruma Water Solutions</string>
     <string name="package_name">com.ruma.watersolutions</string>
     <string name="custom_url_scheme">com.ruma.watersolutions</string>
+    <string name="server_client_id">449552278886-2k7dgm73hr8svsprlhb2sm6iuuq04htj.apps.googleusercontent.com</string>
 </resources>

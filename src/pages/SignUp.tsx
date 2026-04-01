@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { createUserWithEmailAndPassword, signInWithRedirect, getRedirectResult, updateProfile, sendEmailVerification } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, updateProfile, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider, safeStringify, safeError } from "../firebase";
+import { auth, db, safeStringify, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -16,39 +17,6 @@ export default function SignUp() {
   const { t } = useLanguage();
 
   const from = location.state?.from?.pathname || "/";
-
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      try {
-        setLoading(true);
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          const user = result.user;
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName || "",
-              photoURL: user.photoURL || "",
-              role: "user",
-              createdAt: serverTimestamp(),
-            });
-          }
-          
-          navigate(from, { replace: true });
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to sign up with Google");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkRedirectResult();
-  }, []);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,9 +85,30 @@ export default function SignUp() {
     setError("");
     setLoading(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      const googleUser = await GoogleAuth.signIn();
+      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+      const result = await signInWithCredential(auth, credential);
+      const user = result.user;
+      
+      // Create user document if it doesn't exist
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          role: "user",
+          createdAt: serverTimestamp(),
+        });
+      }
+      
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || "Failed to sign up with Google");
+    } finally {
       setLoading(false);
     }
   };

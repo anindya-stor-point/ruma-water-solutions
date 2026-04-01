@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, signOut, sendEmailVerification } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, signOut, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, googleProvider, safeStringify, db, safeLog, safeError } from "../firebase";
+import { auth, safeStringify, db, safeLog, safeError } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { AlertCircle } from "lucide-react";
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,35 +20,6 @@ export default function Login() {
   const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
-    const checkRedirectResult = async () => {
-      try {
-        setLoading(true);
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          const user = result.user;
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName || "",
-              photoURL: user.photoURL || "",
-              role: "user",
-              createdAt: serverTimestamp(),
-            });
-          }
-          await notifyLogin(user);
-          navigate(from, { replace: true });
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to log in with Google");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     const checkCurrentAuth = async () => {
       if (auth.currentUser) {
         setLoading(true);
@@ -62,11 +34,9 @@ export default function Login() {
       }
     };
 
-    checkRedirectResult().then(() => {
-      if (!auth.currentUser) {
-        checkCurrentAuth();
-      }
-    });
+    if (!auth.currentUser) {
+      checkCurrentAuth();
+    }
   }, []);
 
   const notifyLogin = async (user: any) => {
@@ -157,9 +127,32 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      const googleUser = await GoogleAuth.signIn();
+      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+      const result = await signInWithCredential(auth, credential);
+      const user = result.user;
+
+      // Check if user exists in Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        // Create user document for new Google users
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          role: "user",
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      await notifyLogin(user);
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || "Failed to log in with Google");
+    } finally {
       setLoading(false);
     }
   };
