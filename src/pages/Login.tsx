@@ -166,7 +166,8 @@ export default function Login() {
     } catch (err: any) {
       console.error("Google Auth Error:", err);
       // Display the full error message to help debug DEVELOPER_ERROR or other issues
-      setError(`Google Login Error: ${err.message || JSON.stringify(err) || "Failed to log in"}`);
+      const errorCode = err.code ? ` (Code: ${err.code})` : '';
+      setError(`Google Login Error: ${err.message || JSON.stringify(err) || "Failed to log in"}${errorCode}`);
     } finally {
       setLoading(false);
     }

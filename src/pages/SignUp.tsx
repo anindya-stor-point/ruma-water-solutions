@@ -122,7 +122,8 @@ export default function SignUp() {
     } catch (err: any) {
       console.error("Google Auth Error:", err);
       // Display the full error message to help debug DEVELOPER_ERROR or other issues
-      setError(`Google Sign Up Error: ${err.message || JSON.stringify(err) || "Failed to sign up"}`);
+      const errorCode = err.code ? ` (Code: ${err.code})` : '';
+      setError(`Google Sign Up Error: ${err.message || JSON.stringify(err) || "Failed to sign up"}${errorCode}`);
     } finally {
       setLoading(false);
     }
