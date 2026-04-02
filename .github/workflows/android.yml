@@ -21,15 +21,24 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Generate Keystore
+      - name: Generate or Restore Keystore
         run: |
           mkdir -p android/app
           cd android/app
-          rm -f upload-keystore.jks
-          keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass rumawater123 -keypass rumawater123 -dname "CN=Ruma Water, OU=App, O=Ruma, L=City, ST=State, C=US"
-          echo "=================================================="
-          echo "KEYSTORE GENERATED SUCCESSFULLY"
-          echo "=================================================="
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "No secret found. Generating a temporary keystore..."
+            keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass rumawater123 -keypass rumawater123 -dname "CN=Ruma Water, OU=App, O=Ruma, L=City, ST=State, C=US"
+            
+            echo "=================================================="
+            echo "!!! ACTION REQUIRED: PERMANENT KEYSTORE SETUP !!!"
+            echo "=================================================="
+            echo "Copy the following Base64 string and save it as a GitHub Secret named 'ANDROID_KEYSTORE_BASE64':"
+            base64 -w 0 upload-keystore.jks
+            echo -e "\n=================================================="
+          else
+            echo "Restoring keystore from secrets..."
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > upload-keystore.jks
+          fi
 
       - name: Print Keystore Fingerprints
         run: |
