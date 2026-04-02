@@ -51,15 +51,27 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         await fetchAndActivate(remoteConfig);
 
         // Update state with values from Remote Config
+        const fetchedAppVersion = getString(remoteConfig, 'app_version');
+        const fetchedLatestVersion = getString(remoteConfig, 'latest_version');
+        const fetchedLatestVersionCode = Number(getString(remoteConfig, 'latest_version_code'));
+        const fetchedUpdateUrl = getString(remoteConfig, 'update_url').trim();
+
+        console.log('[RemoteConfig] Fetched values:', {
+          app_version: fetchedAppVersion,
+          latest_version: fetchedLatestVersion,
+          latest_version_code: fetchedLatestVersionCode,
+          update_url: fetchedUpdateUrl
+        });
+
         setConfig({
           appName: getString(remoteConfig, 'app_name'),
           promoBannerText: getString(remoteConfig, 'promo_banner_text'),
           showPromoBanner: getBoolean(remoteConfig, 'show_promo_banner'),
           contactPhone: getString(remoteConfig, 'contact_phone'),
-          latestVersion: getString(remoteConfig, 'latest_version'),
-          appVersion: getString(remoteConfig, 'app_version'),
-          latestVersionCode: Number(getString(remoteConfig, 'latest_version_code')),
-          updateUrl: getString(remoteConfig, 'update_url'),
+          latestVersion: fetchedLatestVersion !== '1.0.0' ? fetchedLatestVersion : fetchedAppVersion,
+          appVersion: fetchedAppVersion,
+          latestVersionCode: fetchedLatestVersionCode,
+          updateUrl: fetchedUpdateUrl,
           isLoading: false,
         });
       } catch (error) {

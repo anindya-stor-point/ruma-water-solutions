@@ -21,13 +21,22 @@ export default function UpdateChecker() {
 
   const handleUpdate = async () => {
     if (updateUrl) {
+      const trimmedUrl = updateUrl.trim();
+      
+      // Basic URL validation
+      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+        console.error("Invalid update URL detected. Must start with http:// or https://. Found:", trimmedUrl);
+        alert("ভুল লিঙ্ক! Firebase Remote Config-এ 'update_url' হিসেবে একটি সঠিক ওয়েবসাইট লিঙ্ক (https://...) দিন। আপনি সম্ভবত SHA কোড কপি করেছেন।");
+        return;
+      }
+
       try {
         // Use Capacitor Browser to open the update URL (Intent.ACTION_VIEW equivalent)
-        await Browser.open({ url: updateUrl });
+        await Browser.open({ url: trimmedUrl });
       } catch (error) {
         console.error("Failed to open update URL:", error);
         // Fallback to window.open if Browser plugin fails
-        window.open(updateUrl, '_blank', 'noopener,noreferrer');
+        window.open(trimmedUrl, '_blank', 'noopener,noreferrer');
       }
     }
   };
@@ -63,7 +72,7 @@ export default function UpdateChecker() {
               Update Available!
             </h3>
             <p className="text-indigo-600 font-black text-sm uppercase tracking-widest mb-4">
-              Version {latestVersion}
+              Version {appVersion || latestVersion}
             </p>
 
             <p className="text-gray-600 font-medium mb-8 leading-relaxed">
@@ -71,7 +80,10 @@ export default function UpdateChecker() {
             </p>
 
             <button
-              onClick={handleUpdate}
+              onClick={() => {
+                console.log('[UpdateChecker] Update button clicked. URL:', updateUrl);
+                handleUpdate();
+              }}
               className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
             >
               <Download className="w-6 h-6" />
