@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useRemoteConfig } from "../context/RemoteConfigContext";
-import { APP_VERSION } from "../constants";
+import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function UpdateChecker() {
-  const { latestVersion, updateUrl, isLoading } = useRemoteConfig();
+  const { latestVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
   const [showUpdate, setShowUpdate] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && latestVersion && updateUrl) {
-      // Simple version comparison (e.g., "1.0.1" > "1.0.0")
-      if (latestVersion !== APP_VERSION) {
+    if (!isLoading && latestVersionCode && updateUrl) {
+      // Compare latestVersionCode from Remote Config with current APP_BUILD_NUMBER
+      if (latestVersionCode > APP_BUILD_NUMBER) {
         setShowUpdate(true);
       }
     }
-  }, [latestVersion, APP_VERSION, isLoading, updateUrl]);
+  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, updateUrl]);
+
+  const handleUpdate = () => {
+    if (updateUrl) {
+      // Use window.open to redirect to the update URL
+      window.open(updateUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   if (!showUpdate) return null;
 
@@ -45,7 +52,7 @@ export default function UpdateChecker() {
             </div>
 
             <h3 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
-              New Update!
+              Update Available!
             </h3>
             <p className="text-indigo-600 font-black text-sm uppercase tracking-widest mb-4">
               Version {latestVersion}
@@ -55,15 +62,13 @@ export default function UpdateChecker() {
               A newer version of the app is available. Update now to get the latest features and bug fixes!
             </p>
 
-            <a
-              href={updateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={handleUpdate}
               className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
             >
               <Download className="w-6 h-6" />
               Update Now
-            </a>
+            </button>
 
             <button
               onClick={() => setShowUpdate(false)}
