@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const WaterDropCharacter = () => (
   <motion.div
@@ -40,7 +42,15 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-      setTimeout(() => navigate('/home', { replace: true }), 500);
+      // Check auth state and navigate accordingly
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          navigate('/home', { replace: true });
+        } else {
+          navigate('/signup', { replace: true });
+        }
+        unsubscribe();
+      });
     }, 3000);
 
     return () => clearTimeout(timer);

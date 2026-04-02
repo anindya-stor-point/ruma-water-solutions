@@ -76,7 +76,11 @@ export default function SignUp() {
       // Or we can navigate to a VerifyEmail page.
       navigate("/verify-email");
     } catch (err: any) {
-      setError(err.message || "Failed to sign up");
+      if (err.code === 'auth/email-already-in-use') {
+        setError("Account already exists, please Login");
+      } else {
+        setError(err.message || "Failed to sign up");
+      }
     } finally {
       setLoading(false);
     }
@@ -103,20 +107,26 @@ export default function SignUp() {
         user = result.user;
       }
       
-      // Create user document if it doesn't exist
+      // Check if user already exists in Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
       
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || "",
-          photoURL: user.photoURL || "",
-          role: "user",
-          createdAt: serverTimestamp(),
-        });
+      if (userDoc.exists()) {
+        // Account already exists, show message and sign out
+        setError("Account already exists, please Login");
+        await auth.signOut();
+        return;
       }
+
+      // Create user document for new users
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || "",
+        photoURL: user.photoURL || "",
+        role: "user",
+        createdAt: serverTimestamp(),
+      });
       
       navigate(from, { replace: true });
     } catch (err: any) {
@@ -146,7 +156,7 @@ export default function SignUp() {
           className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors mb-6 disabled:opacity-50"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-          {t('login.google')}
+          Sign up with Google
         </button>
 
         <div className="relative flex items-center py-5">

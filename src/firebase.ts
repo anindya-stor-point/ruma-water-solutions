@@ -8,11 +8,10 @@ import firebaseConfig from "../firebase-applet-config.json";
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with auto-detect long polling for better connectivity in restricted networks
+// Initialize Firestore with forced long polling and disabled fetch streams for maximum compatibility
+// in restricted network environments like the AI Studio preview.
 export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
-  host: "firestore.googleapis.com",
-  ssl: true,
+  experimentalForceLongPolling: true,
 }, firebaseConfig.firestoreDatabaseId || "(default)");
 
 export const auth = getAuth(app);
@@ -194,10 +193,12 @@ async function testConnection(retries = 5) {
         return;
       }
       
-      safeError(`[Firestore] Connection attempt ${i + 1}/${retries} failed: ${error.message}`);
+      safeError(`[Firestore] Connection attempt ${i + 1}/${retries} failed: ${error.message} (Code: ${error.code})`);
       
       if (i === retries - 1) {
-        safeError("[Firestore] CRITICAL: Firestore is unreachable after multiple attempts. Please check your internet connection or Firebase configuration.");
+        safeError("[Firestore] CRITICAL: Firestore is unreachable after multiple attempts.");
+        safeError("[Firestore] This often happens if the Firebase project configuration is stale (e.g., in a remixed app).");
+        safeError("[Firestore] Please try re-running the Firebase setup from the settings menu if the problem persists.");
       } else {
         // Exponential backoff for retries
         const delay = Math.min(1000 * Math.pow(2, i), 10000);

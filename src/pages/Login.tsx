@@ -110,6 +110,7 @@ export default function Login() {
       if (!exists) {
         // If user doesn't exist in Firestore, sign them out and show modal
         await signOut(auth);
+        setError("Account does not exist, please Sign up first");
         setShowSignupModal(true);
         setLoading(false);
         return;
@@ -150,15 +151,10 @@ export default function Login() {
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
-        // Create user document for new Google users
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || "",
-          photoURL: user.photoURL || "",
-          role: "user",
-          createdAt: serverTimestamp(),
-        });
+        // Only registered users can login
+        setError("Account does not exist, please Sign up first");
+        await auth.signOut();
+        return;
       }
 
       await notifyLogin(user);
@@ -194,7 +190,7 @@ export default function Login() {
           className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors mb-6 disabled:opacity-50"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-          {t('login.google')}
+          Log in with Google
         </button>
 
         <div className="relative flex items-center py-5">

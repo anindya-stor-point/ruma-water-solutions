@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage, Language } from "../context/LanguageContext";
 import CustomerCare from "./CustomerCare";
-import { db, OperationType, handleFirestoreError, safeError } from "../firebase";
+import { db, OperationType, handleFirestoreError, safeError, auth } from "../firebase";
 import { doc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { 
   Globe, 
@@ -110,15 +110,25 @@ export default function Profile() {
       const userDocRef = doc(db, "users", user.uid);
       await deleteDoc(userDocRef);
       
-      // 3. Logout the user
+      // 3. Delete from Firebase Auth
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await currentUser.delete();
+      }
+      
+      // 4. Logout the user (redundant but safe)
       await logout();
       
       toast.success(t('profile.account_deleted_success') || 'Account deleted successfully');
-      navigate("/");
-    } catch (error) {
+      navigate("/signup");
+    } catch (error: any) {
       safeError("Error deleting account:", error);
-      handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}`);
-      toast.error(t('profile.account_delete_error') || 'Failed to delete account. Please try again.');
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Please logout and login again to delete your account for security.');
+      } else {
+        handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}`);
+        toast.error(t('profile.account_delete_error') || 'Failed to delete account. Please try again.');
+      }
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -234,7 +244,7 @@ export default function Profile() {
           className="text-sm font-black text-gray-400 cursor-pointer"
           onClick={handleVersionTap}
         >
-          v1.0.4-stable
+          v1.0.7-stable
         </p>
       </div>
 
