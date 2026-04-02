@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "449552278886-jpd3o7n1slpah428255cf9kr027hsss3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruma.watersolutions",
+            "certificate_hash": "b60f6208e571807ae786aafbf69129ebb9fb472d"
+          }
+        },
+        {
           "client_id": "449552278886-kkjt9iptg16gthn79j5uic37htqesn2s.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -43,6 +51,14 @@
           "android_info": {
             "package_name": "com.ruma.watersolutions",
             "certificate_hash": "3b63597e7128c751dfd0294408d9af41693f37ee"
+          }
+        },
+        {
+          "client_id": "449552278886-q5gncfd6rkol6ltvkanhb5dokag3h2uq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruma.watersolutions",
+            "certificate_hash": "bb4bbd62ba5e3c817eba092487be69793d180fcf"
           }
         },
         {
