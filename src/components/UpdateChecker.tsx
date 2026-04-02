@@ -8,16 +8,22 @@ import { Browser } from "@capacitor/browser";
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
   const [showUpdate, setShowUpdate] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && updateUrl) {
+    if (!isLoading && updateUrl && !isDismissed) {
       // Compare latestVersionCode from Remote Config with current APP_BUILD_NUMBER
-      // Or compare appVersion string with current APP_VERSION
-      if (latestVersionCode > APP_BUILD_NUMBER || (appVersion && appVersion !== APP_VERSION)) {
+      // Only show if there is a newer version code
+      if (latestVersionCode > APP_BUILD_NUMBER) {
         setShowUpdate(true);
       }
     }
-  }, [latestVersionCode, appVersion, APP_BUILD_NUMBER, APP_VERSION, isLoading, updateUrl]);
+  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, updateUrl, isDismissed]);
+
+  const handleDismiss = () => {
+    setShowUpdate(false);
+    setIsDismissed(true);
+  };
 
   const handleUpdate = async () => {
     if (updateUrl) {
@@ -61,8 +67,8 @@ export default function UpdateChecker() {
           <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50" />
 
           <button
-            onClick={() => setShowUpdate(false)}
-            className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            onClick={handleDismiss}
+            className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors z-[110]"
           >
             <X className="w-6 h-6 text-gray-400" />
           </button>
@@ -95,7 +101,7 @@ export default function UpdateChecker() {
             </button>
 
             <button
-              onClick={() => setShowUpdate(false)}
+              onClick={handleDismiss}
               className="mt-4 text-gray-400 font-bold hover:text-gray-600 transition-colors text-sm"
             >
               Maybe Later
