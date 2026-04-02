@@ -3,24 +3,32 @@ import { useRemoteConfig } from "../context/RemoteConfigContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Browser } from "@capacitor/browser";
 
 export default function UpdateChecker() {
-  const { latestVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
+  const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
   const [showUpdate, setShowUpdate] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && latestVersionCode && updateUrl) {
+    if (!isLoading && updateUrl) {
       // Compare latestVersionCode from Remote Config with current APP_BUILD_NUMBER
-      if (latestVersionCode > APP_BUILD_NUMBER) {
+      // Or compare appVersion string with current APP_VERSION
+      if (latestVersionCode > APP_BUILD_NUMBER || (appVersion && appVersion !== APP_VERSION)) {
         setShowUpdate(true);
       }
     }
-  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, updateUrl]);
+  }, [latestVersionCode, appVersion, APP_BUILD_NUMBER, APP_VERSION, isLoading, updateUrl]);
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (updateUrl) {
-      // Use window.open to redirect to the update URL
-      window.open(updateUrl, '_blank', 'noopener,noreferrer');
+      try {
+        // Use Capacitor Browser to open the update URL (Intent.ACTION_VIEW equivalent)
+        await Browser.open({ url: updateUrl });
+      } catch (error) {
+        console.error("Failed to open update URL:", error);
+        // Fallback to window.open if Browser plugin fails
+        window.open(updateUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
