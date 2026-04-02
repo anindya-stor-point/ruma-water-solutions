@@ -26,7 +26,11 @@ export default function UpdateChecker() {
       // Basic URL validation
       if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
         console.error("Invalid update URL detected. Must start with http:// or https://. Found:", trimmedUrl);
-        alert("ভুল লিঙ্ক! Firebase Remote Config-এ 'update_url' হিসেবে একটি সঠিক ওয়েবসাইট লিঙ্ক (https://...) দিন। আপনি সম্ভবত SHA কোড কপি করেছেন।");
+        if (trimmedUrl.startsWith('sha256:')) {
+          alert("ভুল লিঙ্ক! আপনি Firebase-এ APK-এর SHA-256 কোড দিয়েছেন। দয়া করে GitHub Release থেকে সরাসরি ডাউনলোড লিঙ্ক (https://...) কপি করে দিন।");
+        } else {
+          alert("ভুল লিঙ্ক! Firebase Remote Config-এ 'update_url' হিসেবে একটি সঠিক ওয়েবসাইট লিঙ্ক (https://...) দিন।");
+        }
         return;
       }
 
