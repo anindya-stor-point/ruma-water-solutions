@@ -245,7 +245,7 @@ export default function Profile() {
           className="text-sm font-black text-gray-400 cursor-pointer"
           onClick={handleVersionTap}
         >
-          v1.0.24-stable
+          v1.0.25-stable
         </p>
       </div>
 
