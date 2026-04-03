@@ -47,6 +47,23 @@ export default function BarcodeScanner() {
     }
   };
 
+  const requestPermission = async () => {
+    setCameraError(null);
+    try {
+      // Use navigator.mediaDevices.getUserMedia to trigger the browser's permission prompt
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Stop the stream immediately, we just wanted to trigger the prompt
+      stream.getTracks().forEach(track => track.stop());
+      
+      localStorage.setItem('camera_permission_granted', 'true');
+      setHasPermission(true);
+      // startScanner will be triggered by useEffect when hasPermission becomes true
+    } catch (err) {
+      safeError("Permission request failed:", err);
+      setCameraError("Camera permission denied. Please enable it in your browser settings to scan barcodes.");
+    }
+  };
+
   const stopScanner = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
@@ -186,12 +203,21 @@ export default function BarcodeScanner() {
               To scan barcodes and QR codes, we need access to your camera. This allows us to identify products instantly.
             </p>
             <button
-              onClick={startScanner}
+              onClick={requestPermission}
               className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
             >
               <Camera className="w-6 h-6" />
               Grant Permission
             </button>
+
+            {cameraError && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-left">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm font-medium leading-tight">
+                  {cameraError}
+                </p>
+              </div>
+            )}
           </div>
         ) : !scannedText ? (
           <>
