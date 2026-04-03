@@ -1,6 +1,6 @@
 {
-  "name": "My E-Commerce App",
-  "description": "A full-stack e-commerce platform with user and admin portals, real-time updates, and Google OAuth.",
+  "name": "Ruma Water",
+  "description": "Ruma Water Solutions - High-quality water storage and solutions app.",
   "requestFramePermissions": [
     "camera"
   ]
