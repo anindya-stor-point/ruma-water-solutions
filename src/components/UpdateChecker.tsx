@@ -3,7 +3,7 @@ import { useRemoteConfig } from "../context/RemoteConfigContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Browser } from "@capacitor/browser";
+import { AppLauncher } from "@capacitor/app-launcher";
 
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
@@ -42,13 +42,16 @@ export default function UpdateChecker() {
 
       try {
         // Force open in external browser app (system browser)
-        // This avoids Chrome Custom Tabs and uses the system's download manager
-        // window.open(url, '_system') is the standard Capacitor way to force external browser
-        window.open(trimmedUrl, '_system');
+        // AppLauncher.openUrl is the Capacitor equivalent of Intent.ACTION_VIEW
+        // This ensures the app is minimized and the system browser handles the download
+        const canOpen = await AppLauncher.canOpenUrl({ url: trimmedUrl });
+        
+        // Even if canOpen is false, we try to open it as it's a standard web URL
+        await AppLauncher.openUrl({ url: trimmedUrl });
       } catch (error) {
-        console.error("Failed to open update URL:", error);
-        // Fallback
-        window.open(trimmedUrl, '_blank');
+        console.error("Failed to open update URL via AppLauncher:", error);
+        // Fallback to window.open with _system which also tries to trigger system browser
+        window.open(trimmedUrl, '_system');
       }
     }
   };
