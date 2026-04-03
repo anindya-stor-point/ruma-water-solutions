@@ -67,17 +67,17 @@ export default function CustomerCare() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center gap-3">
-              <Phone className="w-5 h-5 text-indigo-600" />
+              <Mail className="w-5 h-5 text-indigo-600" />
               <div>
-                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Call Us</p>
-                <p className="text-sm font-bold text-indigo-900">+91 98765 43210</p>
+                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Mail Us</p>
+                <p className="text-sm font-bold text-indigo-900">rumawatersolutions@gmail.com</p>
               </div>
             </div>
             <div className="p-4 bg-green-50 rounded-2xl border border-green-100 flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-green-600" />
               <div>
                 <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">WhatsApp</p>
-                <p className="text-sm font-bold text-green-900">+91 98765 43210</p>
+                <p className="text-sm font-bold text-green-900">+91 8420289264</p>
               </div>
             </div>
           </div>
