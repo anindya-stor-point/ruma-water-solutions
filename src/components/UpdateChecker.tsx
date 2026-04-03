@@ -41,12 +41,14 @@ export default function UpdateChecker() {
       }
 
       try {
-        // Use Capacitor Browser to open the update URL (Intent.ACTION_VIEW equivalent)
-        await Browser.open({ url: trimmedUrl });
+        // Force open in external browser app (system browser)
+        // This avoids Chrome Custom Tabs and uses the system's download manager
+        // window.open(url, '_system') is the standard Capacitor way to force external browser
+        window.open(trimmedUrl, '_system');
       } catch (error) {
         console.error("Failed to open update URL:", error);
-        // Fallback to window.open if Browser plugin fails
-        window.open(trimmedUrl, '_blank', 'noopener,noreferrer');
+        // Fallback
+        window.open(trimmedUrl, '_blank');
       }
     }
   };
