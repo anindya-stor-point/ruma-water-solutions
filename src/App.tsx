@@ -4,7 +4,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Routes, Route, useLocation, Link } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, useLocation, Link, useNavigate, Navigate } from "react-router-dom";
+import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
 import { CartProvider } from "./context/CartContext";
@@ -40,7 +41,6 @@ import OrderHistory from "./pages/OrderHistory";
 import { useAuth } from "./context/AuthContext";
 import { db, safeLog, safeError } from "./firebase";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
-import { Navigate } from "react-router-dom";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 
@@ -127,6 +127,22 @@ function SeedData() {
 function AppContent({ isRouteReady }: { isRouteReady: boolean }) {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (location.pathname !== '/home' && location.pathname !== '/') {
+        navigate(-1);
+      } else {
+        // On home screen, let default behavior happen (usually exits app)
+        CapacitorApp.exitApp();
+      }
+    });
+
+    return () => {
+      backButtonListener.then(l => l.remove());
+    };
+  }, [location, navigate]);
 
   return (
     <>
