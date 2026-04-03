@@ -16,6 +16,9 @@ export default function BarcodeScanner() {
   const [foundProduct, setFoundProduct] = useState<{ id: string; name: string } | null>(null);
   const [isScannerStarted, setIsScannerStarted] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [hasPermission, setHasPermission] = useState<boolean>(() => {
+    return localStorage.getItem('camera_permission_granted') === 'true';
+  });
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const searchProduct = async (barcode: string) => {
@@ -115,6 +118,8 @@ export default function BarcodeScanner() {
         );
       }
       setIsScannerStarted(true);
+      localStorage.setItem('camera_permission_granted', 'true');
+      setHasPermission(true);
     } catch (err) {
       safeError("Error starting scanner:", err);
       setCameraError("Could not access camera. Please ensure you have granted camera permissions.");
@@ -123,14 +128,17 @@ export default function BarcodeScanner() {
   };
 
   useEffect(() => {
-    // Start scanner on mount
-    const timeoutId = setTimeout(startScanner, 500);
+    // Start scanner on mount only if permission was previously granted
+    let timeoutId: NodeJS.Timeout;
+    if (hasPermission) {
+      timeoutId = setTimeout(startScanner, 500);
+    }
 
     return () => {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       stopScanner();
     };
-  }, []);
+  }, [hasPermission]);
 
   const handleAppSearch = () => {
     if (scannedText) {
@@ -168,7 +176,24 @@ export default function BarcodeScanner() {
 
       {/* Scanner Container */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
-        {!scannedText ? (
+        {!hasPermission ? (
+          <div className="w-full max-w-md bg-gray-800 rounded-2xl p-8 shadow-2xl text-center space-y-6 border border-gray-700">
+            <div className="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-3xl flex items-center justify-center mx-auto mb-2 rotate-3">
+              <Camera className="w-10 h-10" />
+            </div>
+            <h2 className="text-2xl font-black text-white">Camera Permission</h2>
+            <p className="text-gray-400 font-medium leading-relaxed">
+              To scan barcodes and QR codes, we need access to your camera. This allows us to identify products instantly.
+            </p>
+            <button
+              onClick={startScanner}
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Camera className="w-6 h-6" />
+              Grant Permission
+            </button>
+          </div>
+        ) : !scannedText ? (
           <>
             <div className="w-full max-w-md aspect-square bg-black rounded-2xl overflow-hidden shadow-2xl relative border-2 border-indigo-500/30">
               <div id="reader" className="w-full h-full"></div>

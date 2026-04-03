@@ -90,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     await signOut(auth);
     sessionStorage.removeItem("admin_verified");
+    localStorage.removeItem("camera_permission_granted");
     setUser(null);
   };
 

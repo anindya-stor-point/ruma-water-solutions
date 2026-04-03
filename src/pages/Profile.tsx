@@ -117,6 +117,7 @@ export default function Profile() {
       }
       
       // 4. Logout the user (redundant but safe)
+      localStorage.removeItem("camera_permission_granted");
       await logout();
       
       toast.success(t('profile.account_deleted_success') || 'Account deleted successfully');
@@ -244,7 +245,7 @@ export default function Profile() {
           className="text-sm font-black text-gray-400 cursor-pointer"
           onClick={handleVersionTap}
         >
-          v1.0.16-stable
+          v1.0.17-stable
         </p>
       </div>
 

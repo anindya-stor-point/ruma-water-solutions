@@ -116,17 +116,25 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Profile Icon */}
           <div className="md:hidden flex items-center gap-4">
             <Link to="/cart" className="relative text-gray-600">
               <ShoppingCart className="w-6 h-6" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-600 hover:text-indigo-600 transition-colors"
-            >
-              {isMobileMenuOpen ? <CloseIcon className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-            </button>
+            {user ? (
+              <Link to="/profile" className="flex items-center">
+                <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full border border-gray-200" referrerPolicy="no-referrer" />
+              </Link>
+            ) : (
+              <Link to="/login" className="text-gray-600 hover:text-indigo-600 transition-colors">
+                <UserIcon className="w-7 h-7" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
