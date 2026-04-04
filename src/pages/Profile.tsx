@@ -5,6 +5,7 @@ import { useLanguage, Language } from "../context/LanguageContext";
 import CustomerCare from "./CustomerCare";
 import { db, OperationType, handleFirestoreError, safeError, auth } from "../firebase";
 import { doc, deleteDoc, collection, getDocs } from "firebase/firestore";
+import { APP_VERSION, APP_BUILD_NUMBER, BuildConfig } from "../constants";
 import { 
   Globe, 
   Headset, 
@@ -245,7 +246,7 @@ export default function Profile() {
           className="text-sm font-black text-gray-400 cursor-pointer"
           onClick={handleVersionTap}
         >
-          v1.0.25-stable
+          v{BuildConfig.VERSION_NAME}-stable
         </p>
       </div>
 
