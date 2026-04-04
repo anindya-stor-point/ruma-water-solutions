@@ -35,9 +35,8 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     const setupRemoteConfig = async () => {
       try {
-        // Set fetch interval (0 for development, 1 hour for production)
-        remoteConfig.settings.minimumFetchIntervalMillis = 
-          process.env.NODE_ENV === 'production' ? 3600000 : 0;
+        // Set fetch interval to 0 to force fetch on every start for testing
+        remoteConfig.settings.minimumFetchIntervalMillis = 0;
         
         remoteConfig.defaultConfig = {
           'app_name': 'Ruma Water Solutions',
