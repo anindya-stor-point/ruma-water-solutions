@@ -87,7 +87,7 @@ export default function UpdateChecker() {
               Update Available!
             </h3>
             <p className="text-indigo-600 font-black text-sm uppercase tracking-widest mb-4">
-              Version {appVersion || latestVersion}
+              Version {latestVersion}
             </p>
 
             <p className="text-gray-600 font-medium mb-8 leading-relaxed">
