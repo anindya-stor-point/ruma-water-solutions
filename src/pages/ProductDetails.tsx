@@ -59,6 +59,10 @@ export default function ProductDetails() {
   const MIN_ORDER_LIMIT = product?.minOrderLimit || 24;
 
   const [quantity, setQuantity] = useState(() => {
+    const stateQuantity = (location.state as any)?.quantity;
+    const savedQuantity = localStorage.getItem(`checkout_quantity_${id}`);
+    if (stateQuantity) return stateQuantity;
+    if (savedQuantity) return parseInt(savedQuantity);
     return (location.state as any)?.product?.minOrderLimit || 24;
   });
   const isFirstLoad = useRef(true);
@@ -88,7 +92,9 @@ export default function ProductDetails() {
         toast.error(`Quantity must be at least ${MIN_ORDER_LIMIT}`);
         return;
       }
-      navigate(`/checkout/${product.id}`, { state: { quantity, product, step: 2 } });
+      localStorage.setItem(`checkout_quantity_${product.id}`, quantity.toString());
+      // Navigate to the checkout page, passing the product details and quantity
+      navigate(`/checkout/${product.id}`, { state: { quantity, product, step: 1 } });
     }
   };
 
@@ -101,7 +107,11 @@ export default function ProductDetails() {
         const data = docSnap.data();
         setProduct({ id: docSnap.id, ...data } as Product);
         if (isFirstLoad.current) {
-          setQuantity(data.minOrderLimit || 24);
+          const stateQuantity = (location.state as any)?.quantity;
+          const savedQuantity = localStorage.getItem(`checkout_quantity_${id}`);
+          if (!stateQuantity && !savedQuantity) {
+            setQuantity(data.minOrderLimit || 24);
+          }
           isFirstLoad.current = false;
         }
       } else {
@@ -254,11 +264,11 @@ export default function ProductDetails() {
               </p>
               <div className="flex items-baseline gap-2">
                 <p className="text-5xl font-black text-gray-900">
-                  ₹{(Number(String(product.price).replace(/[^0-9.]/g, '')) * quantity).toFixed(2)}
+                  ₹{(Number(String(product.price).replace(/[^0-9.]/g, '')) * MIN_ORDER_LIMIT).toFixed(2)}
                 </p>
-                {quantity > 1 && (
+                {MIN_ORDER_LIMIT > 1 && (
                   <span className="text-sm font-bold text-indigo-600 uppercase tracking-wider">
-                    ({quantity} {t('cart.items')})
+                    ({MIN_ORDER_LIMIT} {t('cart.items')})
                   </span>
                 )}
               </div>
@@ -267,74 +277,6 @@ export default function ProductDetails() {
               {product.stock > 0 ? `${product.stock} ${t('product.in_stock')}` : t('product.out_of_stock')}
             </p>
           </div>
-
-          {product.stock > 0 && (
-            <div className="space-y-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="flex flex-col gap-3">
-                <label className="font-bold text-gray-700 text-base">Quantity Enter করুন</label>
-                
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                    className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm text-gray-700"
-                  >
-                    -
-                  </button>
-                  
-                  <input
-                    type="number"
-                    min="1"
-                    value={quantity === 0 ? '' : quantity}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '') {
-                        setQuantity(0);
-                      } else {
-                        const parsed = parseInt(val);
-                        if (!isNaN(parsed)) {
-                          const newQuantity = Math.max(0, parsed);
-                          setQuantity(newQuantity);
-                          localStorage.setItem(`checkout_quantity_${id}`, newQuantity.toString());
-                        }
-                      }
-                    }}
-                    onBlur={() => {
-                      if (quantity === 0) {
-                        setQuantity(MIN_ORDER_LIMIT);
-                        localStorage.setItem(`checkout_quantity_${id}`, MIN_ORDER_LIMIT.toString());
-                      }
-                    }}
-                    className={`w-20 h-10 text-center font-black text-lg bg-white border-2 rounded-lg focus:ring-0 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                      quantity < MIN_ORDER_LIMIT
-                        ? 'border-red-500 text-red-500'
-                        : 'border-gray-900 text-gray-900'
-                    }`}
-                  />
-                  
-                  <button
-                    onClick={() => setQuantity(prev => prev + 1)}
-                    className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm text-gray-700"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="mt-1">
-                  {quantity < MIN_ORDER_LIMIT ? (
-                    <p className="text-red-500 font-semibold text-sm flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
-                      Minimum order is {MIN_ORDER_LIMIT}
-                    </p>
-                  ) : (
-                    <p className="text-gray-900 font-semibold text-sm flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-900 inline-block"></span>
-                      Valid quantity
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Order Now Section */}
           <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center gap-6 mt-8">

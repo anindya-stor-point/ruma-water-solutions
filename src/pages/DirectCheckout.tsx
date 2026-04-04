@@ -68,6 +68,14 @@ export default function DirectCheckout() {
       localStorage.setItem(`checkout_quantity_${id}`, quantity.toString());
     }
   }, [quantity, id]);
+
+  useEffect(() => {
+    const stateQuantity = (location.state as any)?.quantity;
+    if (stateQuantity) {
+      setQuantity(stateQuantity);
+      localStorage.setItem(`checkout_quantity_${id}`, stateQuantity.toString());
+    }
+  }, [location.state, id]);
   const MIN_ORDER_LIMIT = product?.minOrderLimit || 24;
   const numericPrice = parseFloat(String(product?.price || '0').replace(/[^0-9.]/g, '')) || 0;
   const totalAmount = numericPrice * quantity;
