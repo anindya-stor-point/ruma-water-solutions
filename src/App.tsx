@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Main application component
 import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Routes, Route, useLocation, Link, useNavigate, Navigate } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';

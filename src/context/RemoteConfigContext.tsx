@@ -1,3 +1,4 @@
+// Remote configuration context
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { fetchAndActivate, getString, getBoolean } from 'firebase/remote-config';
 import { remoteConfig, safeError } from '../firebase';

@@ -1,3 +1,4 @@
+// Android build configuration
 apply plugin: 'com.android.application'
 
 android {

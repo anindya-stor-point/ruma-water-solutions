@@ -1,3 +1,4 @@
+// Firebase initialization
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, doc, getDocFromServer, initializeFirestore } from "firebase/firestore";
