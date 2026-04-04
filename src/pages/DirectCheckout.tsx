@@ -43,14 +43,15 @@ export default function DirectCheckout() {
   });
 
   const [quantity, setQuantity] = useState<number>(() => {
+    const stateQuantity = (location.state as any)?.quantity;
+    if (stateQuantity) {
+      return stateQuantity;
+    }
     const savedQuantity = localStorage.getItem(`checkout_quantity_${id}`);
-    
     if (savedQuantity) {
       return parseInt(savedQuantity);
     }
-    
-    const stateQuantity = (location.state as any)?.quantity;
-    return stateQuantity || 24;
+    return 24;
   });
 
   useEffect(() => {
