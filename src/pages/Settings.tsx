@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { APP_VERSION } from "../constants";
 
 export default function Settings() {
   const [tapCount, setTapCount] = useState(0);
@@ -78,7 +79,7 @@ export default function Settings() {
           className="text-indigo-600 font-bold cursor-pointer"
           onClick={handleVersionTap}
         >
-          1.0.0
+          {APP_VERSION}
         </span>
       </div>
 

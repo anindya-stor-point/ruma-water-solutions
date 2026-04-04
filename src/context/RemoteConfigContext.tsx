@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { fetchAndActivate, getString, getBoolean } from 'firebase/remote-config';
 import { remoteConfig, safeError } from '../firebase';
 
+import { APP_VERSION, APP_BUILD_NUMBER } from '../constants';
+
 interface RemoteConfigValues {
   appName: string;
   promoBannerText: string;
@@ -22,9 +24,9 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     promoBannerText: '',
     showPromoBanner: false,
     contactPhone: '+880123456789',
-    latestVersion: '1.0.0',
-    appVersion: '1.0.0',
-    latestVersionCode: 1,
+    latestVersion: APP_VERSION,
+    appVersion: APP_VERSION,
+    latestVersionCode: APP_BUILD_NUMBER,
     updateUrl: '',
     isLoading: true,
   });
@@ -41,9 +43,9 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
           'promo_banner_text': '',
           'show_promo_banner': false,
           'contact_phone': '+880123456789',
-          'latest_version': '1.0.0',
-          'app_version': '1.0.0',
-          'latest_version_code': 1,
+          'latest_version': APP_VERSION,
+          'app_version': APP_VERSION,
+          'latest_version_code': APP_BUILD_NUMBER,
           'update_url': '',
         };
 
