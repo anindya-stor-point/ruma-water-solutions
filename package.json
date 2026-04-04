@@ -1,6 +1,6 @@
 {
   "name": "react-example",
-  "private": true,
+  "private": true, // Triggering GitHub sync for icon fixes
   "version": "1.0.27",
   "type": "module",
   "scripts": {
