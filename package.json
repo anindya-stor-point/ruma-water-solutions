@@ -1,7 +1,7 @@
 {
   "name": "react-example",
-  "private": true, // Triggering GitHub sync for icon fixes
-  "version": "1.0.27",
+  "private": true,
+  "version": "1.0.28",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
