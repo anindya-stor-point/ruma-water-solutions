@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Android adaptive icon PNGs (to be ignored)
+android/app/src/main/res/drawable/ic_launcher_adaptive_back.png
+android/app/src/main/res/drawable/ic_launcher_adaptive_fore.png
