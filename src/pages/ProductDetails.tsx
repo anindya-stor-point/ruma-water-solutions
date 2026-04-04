@@ -273,14 +273,15 @@ export default function ProductDetails() {
               <div className="flex flex-col gap-3">
                 <label className="font-bold text-gray-700 text-base">Quantity Enter করুন</label>
                 
-                <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                    className="w-full sm:w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-sm text-gray-700"
+                    className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm text-gray-700"
                   >
                     -
                   </button>
-                                    <input
+                  
+                  <input
                     type="number"
                     min="1"
                     value={quantity === 0 ? '' : quantity}
@@ -298,7 +299,7 @@ export default function ProductDetails() {
                     onBlur={() => {
                       if (quantity === 0) setQuantity(MIN_ORDER_LIMIT);
                     }}
-                    className={`w-20 sm:flex-1 h-12 text-center font-black text-xl bg-white border-2 rounded-xl focus:ring-0 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                    className={`w-20 h-10 text-center font-black text-lg bg-white border-2 rounded-lg focus:ring-0 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                       quantity < MIN_ORDER_LIMIT
                         ? 'border-red-500 text-red-500'
                         : 'border-gray-900 text-gray-900'
@@ -307,7 +308,7 @@ export default function ProductDetails() {
                   
                   <button
                     onClick={() => setQuantity(prev => prev + 1)}
-                    className="w-full sm:w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-sm text-gray-700"
+                    className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm text-gray-700"
                   >
                     +
                   </button>
