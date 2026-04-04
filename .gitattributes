@@ -1,0 +1,7 @@
+# Treat images as binary to prevent Git from corrupting them with line ending conversions
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
