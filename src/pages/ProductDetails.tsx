@@ -292,12 +292,17 @@ export default function ProductDetails() {
                       } else {
                         const parsed = parseInt(val);
                         if (!isNaN(parsed)) {
-                          setQuantity(Math.max(0, parsed));
+                          const newQuantity = Math.max(0, parsed);
+                          setQuantity(newQuantity);
+                          localStorage.setItem(`checkout_quantity_${id}`, newQuantity.toString());
                         }
                       }
                     }}
                     onBlur={() => {
-                      if (quantity === 0) setQuantity(MIN_ORDER_LIMIT);
+                      if (quantity === 0) {
+                        setQuantity(MIN_ORDER_LIMIT);
+                        localStorage.setItem(`checkout_quantity_${id}`, MIN_ORDER_LIMIT.toString());
+                      }
                     }}
                     className={`w-20 h-10 text-center font-black text-lg bg-white border-2 rounded-lg focus:ring-0 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                       quantity < MIN_ORDER_LIMIT
