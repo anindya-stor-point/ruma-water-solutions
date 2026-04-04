@@ -5,6 +5,7 @@
   "version": "29",
   "type": "module",
   "scripts": {
+    "prebuild": "tsx scripts/generate-icons.js",
     "dev": "tsx server.ts",
     "start": "node server.ts",
     "build": "vite build",
