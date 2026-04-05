@@ -139,6 +139,12 @@ export default function DirectCheckout() {
   const handleUpiClick = (app: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (!product) return;
+    
+    // Set status to pending payment before opening UPI app
+    // This is a best effort, as we don't know if they actually pay.
+    // The order is created only after they return and submit UTR.
+    // If they don't return, the order is not created, so no status to update.
+    
     const numericPrice = parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || 0;
     const totalPrice = numericPrice * quantity;
     const upiId = "9339025328@axl"; // User's actual UPI ID
@@ -366,7 +372,16 @@ export default function DirectCheckout() {
       };
 
       // Save order
-      const docRef = await addDoc(collection(db, "orders"), orderData);
+      const ordersRef = collection(db, "orders");
+      const q = query(ordersRef, where("utrNumber", "==", utrNumber));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        toast.error("This UTR has already been used.");
+        setIsProcessing(false);
+        return;
+      }
+      
+      const docRef = await addDoc(ordersRef, orderData);
 
       // Send email notification via backend
       try {

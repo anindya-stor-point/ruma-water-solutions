@@ -145,6 +145,7 @@ export default function AdminDashboard() {
     { name: "Orders", path: "/admin/orders", icon: ShoppingBag },
     { name: "Tickets", path: "/admin/tickets", icon: Mail },
     { name: "Settings", path: "/admin/settings", icon: SettingsIcon },
+    { name: "Payment Settings", path: "/admin/payment-settings", icon: SettingsIcon },
   ];
 
   return (
@@ -199,8 +200,16 @@ export default function AdminDashboard() {
           <Route path="/orders" element={<AdminOrders user={user} />} />
           <Route path="/tickets" element={<AdminTickets user={user} />} />
           <Route path="/settings" element={<AdminSettings user={user} />} />
+          <Route path="/payment-settings" element={<PaymentSettings user={user} />} />
         </Routes>
       </div>
+      <style>{`
+        #barcode-reader { border: none !important; }
+        #barcode-reader__dashboard_section_csr span { color: #1f2937 !important; }
+        #barcode-reader__dashboard_section_swaplink { color: #4f46e5 !important; text-decoration: none !important; margin-top: 10px; display: inline-block; }
+        #barcode-reader button { background-color: #4f46e5 !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 600 !important; cursor: pointer !important; margin: 10px 0 !important; }
+        #barcode-reader select { padding: 8px !important; border-radius: 8px !important; border: 1px solid #d1d5db !important; margin-bottom: 10px !important; width: 100% !important; max-width: 300px !important; color: #1f2937 !important; }
+      `}</style>
     </div>
   );
 }
@@ -1236,6 +1245,8 @@ function AdminSettings({ user }: { user: any }) {
       aboutUs: formData.get("aboutUs"),
       termsAndConditions: formData.get("termsAndConditions"),
       paymentMethods: (formData.get("paymentMethods") as string).split(",").map(s => s.trim()).filter(Boolean),
+      upiId: formData.get("upiId"),
+      upiQrCode: appLogo, // Reuse appLogo logic for QR code for now or add separate
       isCardPaymentEnabled: formData.get("isCardPaymentEnabled") === "on",
       isCodEnabled: formData.get("isCodEnabled") === "on",
     };
@@ -1324,34 +1335,6 @@ function AdminSettings({ user }: { user: any }) {
             <label className="block text-sm font-bold text-gray-700 mb-2">Terms and Conditions</label>
             <textarea name="termsAndConditions" defaultValue={settings.termsAndConditions} required className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 h-64 font-medium" />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Payment Methods (comma separated)</label>
-            <input name="paymentMethods" defaultValue={settings.paymentMethods.join(", ")} required className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium" />
-          </div>
-          <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-gray-50">
-            <input 
-              type="checkbox" 
-              name="isCardPaymentEnabled" 
-              id="isCardPaymentEnabled"
-              defaultChecked={settings.isCardPaymentEnabled} 
-              className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" 
-            />
-            <label htmlFor="isCardPaymentEnabled" className="font-bold text-gray-700 cursor-pointer">
-              Enable Credit / Debit Card Payment Option
-            </label>
-          </div>
-          <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-gray-50">
-            <input 
-              type="checkbox" 
-              name="isCodEnabled" 
-              id="isCodEnabled"
-              defaultChecked={settings.isCodEnabled !== false} 
-              className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" 
-            />
-            <label htmlFor="isCodEnabled" className="font-bold text-gray-700 cursor-pointer">
-              Enable Cash on Delivery (COD) Payment Option
-            </label>
-          </div>
           <button type="submit" disabled={isSaving} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 disabled:bg-indigo-400">
             {isSaving ? "Saving..." : "Save Settings"}
           </button>
@@ -1365,13 +1348,91 @@ function AdminSettings({ user }: { user: any }) {
           <button type="submit" className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200">Change Password</button>
         </form>
       </div>
-      <style>{`
-        #barcode-reader { border: none !important; }
-        #barcode-reader__dashboard_section_csr span { color: #1f2937 !important; }
-        #barcode-reader__dashboard_section_swaplink { color: #4f46e5 !important; text-decoration: none !important; margin-top: 10px; display: inline-block; }
-        #barcode-reader button { background-color: #4f46e5 !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 600 !important; cursor: pointer !important; margin: 10px 0 !important; }
-        #barcode-reader select { padding: 8px !important; border-radius: 8px !important; border: 1px solid #d1d5db !important; margin-bottom: 10px !important; width: 100% !important; max-width: 300px !important; color: #1f2937 !important; }
-      `}</style>
+    </div>
+  );
+}
+
+function PaymentSettings({ user }: { user: any }) {
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [qrFile, setQrFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    const settingsRef = doc(db, "appSettings", "main");
+    const unsubscribe = onSnapshot(settingsRef, (snap) => {
+      if (snap.exists()) setSettings(snap.data() as Settings);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const formData = new FormData(e.currentTarget);
+    let upiQrCode = settings?.upiQrCode;
+
+    if (qrFile) {
+      try {
+        const storageRef = ref(storage, `settings/qr_${Date.now()}`);
+        const uploadTask = await uploadBytes(storageRef, qrFile);
+        upiQrCode = await getDownloadURL(uploadTask.ref);
+        toast.success("QR Code uploaded");
+      } catch (err) {
+        toast.error("QR upload failed");
+      }
+    }
+
+    const newSettings = {
+      upiId: formData.get("upiId"),
+      upiQrCode,
+      isOnlinePaymentEnabled: formData.get("isOnlinePaymentEnabled") === "on",
+      isCardPaymentEnabled: formData.get("isCardPaymentEnabled") === "on",
+      isCodEnabled: formData.get("isCodEnabled") === "on",
+    };
+
+    try {
+      await setDoc(doc(db, "appSettings", "main"), newSettings, { merge: true });
+      toast.success("Payment settings saved!");
+    } catch (err) {
+      toast.error("Failed to save");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!settings) return null;
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-3xl font-extrabold text-gray-900">Payment Settings</h2>
+      <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">UPI ID</label>
+          <input name="upiId" defaultValue={settings.upiId} required className="w-full p-4 border border-gray-200 rounded-xl" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">UPI QR Code</label>
+          {settings.upiQrCode && !qrFile && <img src={settings.upiQrCode} className="w-32 h-32 mb-2 border rounded" />}
+          <input type="file" accept="image/*" onChange={(e) => setQrFile(e.target.files?.[0] || null)} className="w-full p-2 border border-gray-200 rounded-xl" />
+        </div>
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-gray-50 cursor-pointer">
+            <input type="checkbox" name="isOnlinePaymentEnabled" defaultChecked={settings.isOnlinePaymentEnabled} className="w-5 h-5" />
+            <span className="font-bold">Enable Online Payment</span>
+          </label>
+          <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-gray-50 cursor-pointer">
+            <input type="checkbox" name="isCardPaymentEnabled" defaultChecked={settings.isCardPaymentEnabled} className="w-5 h-5" />
+            <span className="font-bold">Enable Credit / Debit Card</span>
+          </label>
+          <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-gray-50 cursor-pointer">
+            <input type="checkbox" name="isCodEnabled" defaultChecked={settings.isCodEnabled !== false} className="w-5 h-5" />
+            <span className="font-bold">Enable Cash on Delivery (COD)</span>
+          </label>
+        </div>
+        <button type="submit" disabled={isSaving} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-700">
+          {isSaving ? "Saving..." : "Save Payment Settings"}
+        </button>
+      </form>
     </div>
   );
 }
