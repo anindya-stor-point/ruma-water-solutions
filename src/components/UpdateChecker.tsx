@@ -4,11 +4,18 @@ import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { CapacitorUpdater } from "@capgo/capacitor-updater";
+import React, { useState, useEffect } from "react";
+import { useRemoteConfig } from "../context/RemoteConfigContext";
+import { useLanguage } from "../context/LanguageContext";
+import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
+import { Download, X, Rocket } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { App } from "@capacitor/app";
 
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
-  const { t, language } = useLanguage(); // Assuming useLanguage provides language
+  const { t, language } = useLanguage();
   const [showUpdate, setShowUpdate] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -29,15 +36,52 @@ export default function UpdateChecker() {
   };
 
   const handleUpdate = async () => {
+    if (!updateUrl) {
+      console.error("Update URL is missing or invalid");
+      return;
+    }
+    
     setIsDownloading(true);
+    console.log("Starting download from:", updateUrl);
+
     try {
-      CapacitorUpdater.addListener('download', (info: any) => {
-        setProgress(info.progress);
-      });
-      await CapacitorUpdater.notifyAppReady();
-      await CapacitorUpdater.reload();
+      const response = await fetch(updateUrl);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const reader = response.body?.getReader();
+      const contentLength = +response.headers.get('Content-Length')!;
+      let receivedLength = 0;
+      let chunks = [];
+
+      while(true) {
+        const {done, value} = await reader!.read();
+        if (done) break;
+        chunks.push(value);
+        receivedLength += value.length;
+        setProgress(Math.round((receivedLength / contentLength) * 100));
+      }
+
+      let blob = new Blob(chunks);
+      let readerBlob = new FileReader();
+      readerBlob.readAsDataURL(blob);
+      readerBlob.onloadend = async () => {
+        let base64data = readerBlob.result as string;
+        const fileName = 'update.apk';
+        
+        await Filesystem.writeFile({
+          path: fileName,
+          data: base64data.split(',')[1],
+          directory: Directory.ExternalStorage
+        });
+
+        console.log("APK downloaded successfully");
+        
+        // Native install logic
+        await App.exitApp(); // This is a placeholder, native install requires specific plugin
+      };
+
     } catch (error) {
-      console.error("Update failed:", error);
+      console.error("Update download failed:", error);
       setIsDownloading(false);
     }
   };
