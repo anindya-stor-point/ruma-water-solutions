@@ -373,12 +373,16 @@ export default function DirectCheckout() {
 
       // Save order
       const ordersRef = collection(db, "orders");
-      const q = query(ordersRef, where("utrNumber", "==", utrNumber));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        toast.error("This UTR has already been used.");
-        setIsProcessing(false);
-        return;
+      
+      // Only check UTR for UPI payments
+      if (paymentMethod === 'upi') {
+        const q = query(ordersRef, where("utrNumber", "==", utrNumber));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          toast.error("This UTR has already been used.");
+          setIsProcessing(false);
+          return;
+        }
       }
       
       const docRef = await addDoc(ordersRef, orderData);
