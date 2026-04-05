@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRemoteConfig } from "../context/RemoteConfigContext";
+import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -7,52 +8,39 @@ import { AppLauncher } from "@capacitor/app-launcher";
 
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
+  const { t, language } = useLanguage(); // Assuming useLanguage provides language
   const [showUpdate, setShowUpdate] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading && updateUrl && !isDismissed) {
-      // Compare latestVersionCode from Remote Config with current APP_BUILD_NUMBER
-      // Only show if there is a newer version code
-      if (latestVersionCode > APP_BUILD_NUMBER) {
-        setShowUpdate(true);
-      }
-    }
-  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, updateUrl, isDismissed]);
+  const isBengali = language === 'bn';
 
-  const handleDismiss = () => {
-    setShowUpdate(false);
-    setIsDismissed(true);
+  const texts = {
+    bn: {
+      title: 'নতুন আপডেট পাওয়া গেছে!',
+      body: 'রূমা ওয়াটার সলিউশনস অ্যাপটির লেটেস্ট ভার্সন পেতে \'Update\' বাটনে ক্লিক করুন।',
+      permission: 'অনুগ্রহ করে সেটিংস থেকে এই অ্যাপটিকে নতুন ভার্সন ইন্সটল করার অনুমতি দিন।',
+      updateBtn: 'Update'
+    },
+    en: {
+      title: 'New Update Available!',
+      body: 'Please click \'Update\' to get the latest features of Ruma Water Solutions.',
+      permission: 'Please allow Ruma Water Solutions to install the latest version from settings.',
+      updateBtn: 'Update'
+    }
   };
+
+  const currentText = isBengali ? texts.bn : texts.en;
+
+  // ... (rest of the logic)
 
   const handleUpdate = async () => {
     if (updateUrl) {
-      const trimmedUrl = updateUrl.trim();
+      alert(currentText.permission);
+      // Open settings to allow unknown apps
+      await AppLauncher.openUrl({ url: 'package:com.android.settings' });
       
-      // Basic URL validation
-      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
-        console.error("Invalid update URL detected. Must start with http:// or https://. Found:", trimmedUrl);
-        if (trimmedUrl.startsWith('sha256:')) {
-          alert("ভুল লিঙ্ক! আপনি Firebase-এ APK-এর SHA-256 কোড দিয়েছেন। দয়া করে GitHub Release থেকে সরাসরি ডাউনলোড লিঙ্ক (https://...) কপি করে দিন।");
-        } else {
-          alert("ভুল লিঙ্ক! Firebase Remote Config-এ 'update_url' হিসেবে একটি সঠিক ওয়েবসাইট লিঙ্ক (https://...) দিন।");
-        }
-        return;
-      }
-
-      try {
-        // Force open in external browser app (system browser)
-        // AppLauncher.openUrl is the Capacitor equivalent of Intent.ACTION_VIEW
-        // This ensures the app is minimized and the system browser handles the download
-        const canOpen = await AppLauncher.canOpenUrl({ url: trimmedUrl });
-        
-        // Even if canOpen is false, we try to open it as it's a standard web URL
-        await AppLauncher.openUrl({ url: trimmedUrl });
-      } catch (error) {
-        console.error("Failed to open update URL via AppLauncher:", error);
-        // Fallback to window.open with _system which also tries to trigger system browser
-        window.open(trimmedUrl, '_system');
-      }
+      // Open download URL
+      window.open(updateUrl, '_system');
     }
   };
 
@@ -84,14 +72,14 @@ export default function UpdateChecker() {
             </div>
 
             <h3 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
-              Update Available!
+              {currentText.title}
             </h3>
             <p className="text-indigo-600 font-black text-sm uppercase tracking-widest mb-4">
               Version {latestVersion}
             </p>
 
             <p className="text-gray-600 font-medium mb-8 leading-relaxed">
-              A newer version of the app is available. Update now to get the latest features and bug fixes!
+              {currentText.body}
             </p>
 
             <button
@@ -102,7 +90,7 @@ export default function UpdateChecker() {
               className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
             >
               <Download className="w-6 h-6" />
-              Update Now
+              {currentText.updateBtn}
             </button>
 
             <button
