@@ -55,27 +55,26 @@ export default function UpdateChecker() {
       }
       
       // 2. Download with Progress
-      const response = await fetch(updateUrl);
-      if (!response.ok) throw new Error(`Download failed! Status: ${response.status}`);
+      const response = await fetch(updateUrl, { mode: 'no-cors' });
+      // Note: 'no-cors' mode means response.ok and headers will not be available.
+      // We will assume success if fetch completes without throwing.
       
-      const contentLength = response.headers.get('Content-Length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      let loaded = 0;
+      console.log("Fetch request completed (no-cors mode)");
       
-      const reader = response.body!.getReader();
-      const chunks = [];
+      // Since we can't get content-length with no-cors, we'll simulate progress
+      setProgress(50);
       
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.length;
-        if (total) {
-          setProgress(Math.round((loaded / total) * 100));
-        }
-      }
+      // For no-cors, we can't easily get the body as a stream.
+      // This is a limitation of no-cors. 
+      // If the URL is truly a direct APK link, we might need a different approach.
       
-      const blob = new Blob(chunks);
+      // Reverting to normal fetch if no-cors is not suitable for APK download
+      const responseNormal = await fetch(updateUrl);
+      if (!responseNormal.ok) throw new Error(`Download failed! Status: ${responseNormal.status}`);
+      
+      const blob = await responseNormal.blob();
+      setProgress(100);
+      
       const base64data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
