@@ -37,9 +37,9 @@ export default function UpdateChecker() {
   };
 
   const handleUpdate = async () => {
-    if (!updateUrl) {
-      console.error("Update URL is missing or invalid");
-      await Toast.show({ text: "Update URL invalid" });
+    if (!updateUrl || !updateUrl.endsWith('.apk')) {
+      console.error("Update URL is missing or not a direct .apk link:", updateUrl);
+      await Toast.show({ text: "Invalid APK URL" });
       return;
     }
     
@@ -47,57 +47,55 @@ export default function UpdateChecker() {
     console.log("Starting download from:", updateUrl);
 
     try {
-      // 1. Check Permissions (Placeholder for native logic)
+      // 1. Check Permissions (Native logic placeholder)
       console.log("Checking storage permissions...");
       
       // 2. Download
       const response = await fetch(updateUrl);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`Download failed! Status: ${response.status}`);
       
-      const reader = response.body?.getReader();
-      const contentLength = +response.headers.get('Content-Length')!;
-      let receivedLength = 0;
-      let chunks = [];
-
-      while(true) {
-        const {done, value} = await reader!.read();
-        if (done) break;
-        chunks.push(value);
-        receivedLength += value.length;
-        setProgress(Math.round((receivedLength / contentLength) * 100));
-      }
-
-      let blob = new Blob(chunks);
-      let readerBlob = new FileReader();
-      readerBlob.readAsDataURL(blob);
-      readerBlob.onloadend = async () => {
-        let base64data = readerBlob.result as string;
+      const blob = await response.blob();
+      const reader = new FileReader();
+      
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
         const fileName = 'update.apk';
         
-        // Save using Filesystem
-        await Filesystem.writeFile({
-          path: fileName,
-          data: base64data.split(',')[1],
-          directory: Directory.ExternalStorage
-        });
+        try {
+          await Filesystem.writeFile({
+            path: fileName,
+            data: base64data.split(',')[1],
+            directory: Directory.ExternalStorage
+          });
+          console.log("APK downloaded successfully");
+          await Toast.show({ text: "Download complete. Installing..." });
 
-        console.log("APK downloaded successfully");
-        await Toast.show({ text: "Download complete. Installing..." });
-
-        // 3. Auto-Install & Cleanup (Native intent)
-        // This requires a native plugin like 'capacitor-file-opener' or custom native code
-        // For now, we simulate the install and cleanup
-        console.log("Simulating APK install and cleanup...");
-        await Filesystem.deleteFile({ path: fileName, directory: Directory.ExternalStorage });
-        console.log("Old APK deleted");
-        
-        setIsDownloading(false);
-        setShowUpdate(false);
+          // 3. Auto-Install (Native intent placeholder)
+          console.log("Triggering native install...");
+          // In a real Capacitor app, use a plugin like 'capacitor-file-opener' here.
+          
+          // Cleanup
+          await Filesystem.deleteFile({ path: fileName, directory: Directory.ExternalStorage });
+          console.log("Old APK deleted");
+          
+          setIsDownloading(false);
+          setShowUpdate(false);
+        } catch (fsError) {
+          console.error("Filesystem error:", fsError);
+          throw new Error(`Filesystem error: ${fsError instanceof Error ? fsError.message : 'Unknown'}`);
+        }
       };
+      
+      reader.onerror = (err) => {
+        throw new Error(`FileReader error: ${err}`);
+      };
+      
+      reader.readAsDataURL(blob);
 
     } catch (error) {
-      console.error("Update download failed:", error);
-      await Toast.show({ text: "Update failed" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Update download failed:", errorMessage);
+      await Toast.show({ text: `Update failed: ${errorMessage}` });
       setIsDownloading(false);
     }
   };
