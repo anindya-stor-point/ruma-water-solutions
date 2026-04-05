@@ -4,27 +4,25 @@ import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { App } from "@capacitor/app";
+import { Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import { Browser } from "@capacitor/browser";
 
 export default function UpdateChecker() {
-  const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
-  const { t, language } = useLanguage();
+  const { latestVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
+  const { language } = useLanguage();
   const [showUpdate, setShowUpdate] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const isBengali = language === 'bn';
-  const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'অ্যাপটি আপডেট হচ্ছে...', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'App is updating...', updateBtn: 'Update' };
+  const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'আপডেট করার জন্য অ্যাপটিকে পারমিশন দিন।', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'Please grant permission to update the app.', updateBtn: 'Update' };
 
   useEffect(() => {
     if (!isLoading && latestVersionCode > APP_BUILD_NUMBER && !isDismissed) {
       setShowUpdate(true);
     }
-  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, isDismissed]);
+  }, [latestVersionCode, isLoading, isDismissed]);
 
   const handleDismiss = () => {
     setShowUpdate(false);
@@ -33,29 +31,34 @@ export default function UpdateChecker() {
 
   const handleUpdate = async () => {
     if (!updateUrl) {
-      console.error("Update URL is missing");
       await Toast.show({ text: "Update URL missing" });
       return;
     }
     
     setIsDownloading(true);
-    console.log("Opening download link in browser:", updateUrl);
 
     try {
-      // GitHub Releases থেকে সরাসরি ডাউনলোড করার জন্য Browser প্লাগইন সবচেয়ে নিরাপদ
+      // 1. Request Permissions
+      const status = await Filesystem.requestPermissions();
+      if (status.publicStorage !== 'granted') {
+        await Toast.show({ text: "Permission denied. Please enable in settings." });
+        // In a real app, you would use a plugin to open settings, e.g., @capacitor-community/settings
+        setIsDownloading(false);
+        return;
+      }
+      
+      // 2. Open link for download
       await Browser.open({ url: updateUrl });
       
-      await Toast.show({ text: "Opening download link..." });
+      await Toast.show({ text: "Download started..." });
       
       setIsDownloading(false);
       setShowUpdate(false);
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("Update download failed:", errorMessage);
-      await Toast.show({ text: `Update failed: ${errorMessage}` });
+      console.error("Update failed:", error);
+      await Toast.show({ text: "Update failed. Please check permissions." });
       setIsDownloading(false);
-      setProgress(0);
     }
   };
 
