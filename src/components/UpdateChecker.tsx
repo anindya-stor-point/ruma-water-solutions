@@ -36,6 +36,10 @@ export default function UpdateChecker() {
     setIsDismissed(true);
   };
 
+import { Browser } from "@capacitor/browser";
+
+// ... inside handleUpdate function ...
+
   const handleUpdate = async () => {
     if (!updateUrl) {
       console.error("Update URL is missing");
@@ -44,59 +48,13 @@ export default function UpdateChecker() {
     }
     
     setIsDownloading(true);
-    setProgress(0);
-    console.log("Starting download from:", updateUrl);
+    console.log("Opening download link in browser:", updateUrl);
 
     try {
-      // 1. Check/Request Permissions
-      const status = await Filesystem.requestPermissions();
-      if (status.publicStorage !== 'granted') {
-        throw new Error("Storage permission denied");
-      }
+      // GitHub Releases থেকে সরাসরি ডাউনলোড করার জন্য Browser প্লাগইন সবচেয়ে নিরাপদ
+      await Browser.open({ url: updateUrl });
       
-      // 2. Download with Progress
-      const response = await fetch(updateUrl, { mode: 'no-cors' });
-      // Note: 'no-cors' mode means response.ok and headers will not be available.
-      // We will assume success if fetch completes without throwing.
-      
-      console.log("Fetch request completed (no-cors mode)");
-      
-      // Since we can't get content-length with no-cors, we'll simulate progress
-      setProgress(50);
-      
-      // For no-cors, we can't easily get the body as a stream.
-      // This is a limitation of no-cors. 
-      // If the URL is truly a direct APK link, we might need a different approach.
-      
-      // Reverting to normal fetch if no-cors is not suitable for APK download
-      const responseNormal = await fetch(updateUrl);
-      if (!responseNormal.ok) throw new Error(`Download failed! Status: ${responseNormal.status}`);
-      
-      const blob = await responseNormal.blob();
-      setProgress(100);
-      
-      const base64data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      const fileName = 'update.apk';
-      await Filesystem.writeFile({
-        path: fileName,
-        data: base64data.split(',')[1],
-        directory: Directory.ExternalStorage
-      });
-      
-      console.log("APK downloaded successfully");
-      await Toast.show({ text: "Download complete. Installing..." });
-      setProgress(100);
-
-      // 3. Auto-Install (Placeholder)
-      console.log("Triggering native install...");
-      // Cleanup
-      await Filesystem.deleteFile({ path: fileName, directory: Directory.ExternalStorage });
+      await Toast.show({ text: "Opening download link..." });
       
       setIsDownloading(false);
       setShowUpdate(false);
