@@ -4,43 +4,34 @@ import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { AppLauncher } from "@capacitor/app-launcher";
+import { CapacitorUpdater } from "@capgo/capacitor-updater";
 
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
   const { t, language } = useLanguage(); // Assuming useLanguage provides language
-  const [showUpdate, setShowUpdate] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const isBengali = language === 'bn';
+  const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'অ্যাপটি আপডেট হচ্ছে...', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'App is updating...', updateBtn: 'Update' };
 
-  const texts = {
-    bn: {
-      title: 'নতুন আপডেট পাওয়া গেছে!',
-      body: 'রূমা ওয়াটার সলিউশনস অ্যাপটির লেটেস্ট ভার্সন পেতে \'Update\' বাটনে ক্লিক করুন।',
-      permission: 'অনুগ্রহ করে সেটিংস থেকে এই অ্যাপটিকে নতুন ভার্সন ইন্সটল করার অনুমতি দিন।',
-      updateBtn: 'Update'
-    },
-    en: {
-      title: 'New Update Available!',
-      body: 'Please click \'Update\' to get the latest features of Ruma Water Solutions.',
-      permission: 'Please allow Ruma Water Solutions to install the latest version from settings.',
-      updateBtn: 'Update'
+  useEffect(() => {
+    if (!isLoading && latestVersionCode > APP_BUILD_NUMBER) {
+      setShowUpdate(true);
     }
-  };
-
-  const currentText = isBengali ? texts.bn : texts.en;
-
-  // ... (rest of the logic)
+  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading]);
 
   const handleUpdate = async () => {
-    if (updateUrl) {
-      alert(currentText.permission);
-      // Open settings to allow unknown apps
-      await AppLauncher.openUrl({ url: 'package:com.android.settings' });
-      
-      // Open download URL
-      window.open(updateUrl, '_system');
+    setIsDownloading(true);
+    try {
+      CapacitorUpdater.addListener('download', (info: any) => {
+        setProgress(info.progress);
+      });
+      await CapacitorUpdater.notifyAppReady();
+      await CapacitorUpdater.reload();
+    } catch (error) {
+      console.error("Update failed:", error);
+      setIsDownloading(false);
     }
   };
 
@@ -78,20 +69,26 @@ export default function UpdateChecker() {
               Version {latestVersion}
             </p>
 
-            <p className="text-gray-600 font-medium mb-8 leading-relaxed">
-              {currentText.body}
-            </p>
+            {isDownloading ? (
+              <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                <div className="bg-indigo-600 h-4 rounded-full" style={{ width: `${progress}%` }}></div>
+                <p className="text-center mt-2">{progress}%</p>
+              </div>
+            ) : (
+              <p className="text-gray-600 font-medium mb-8 leading-relaxed">
+                {currentText.body}
+              </p>
+            )}
 
-            <button
-              onClick={() => {
-                console.log('[UpdateChecker] Update button clicked. URL:', updateUrl);
-                handleUpdate();
-              }}
-              className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
-            >
-              <Download className="w-6 h-6" />
-              {currentText.updateBtn}
-            </button>
+            {!isDownloading && (
+              <button
+                onClick={handleUpdate}
+                className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+              >
+                <Download className="w-6 h-6" />
+                {currentText.updateBtn}
+              </button>
+            )}
 
             <button
               onClick={handleDismiss}
