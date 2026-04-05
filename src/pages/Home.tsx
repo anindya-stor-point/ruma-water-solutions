@@ -29,7 +29,7 @@ export default function Home() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const searchTerm = searchParams.get("q") || "";
   const selectedCategory = searchParams.get("category") || "All";
@@ -264,7 +264,7 @@ export default function Home() {
                   {t('product.out_of_stock')}
                 </div>
               )}
-              <Link to={`/product/${product.id}`} state={{ product }} className="block aspect-square w-full overflow-hidden bg-gray-200">
+              <Link to={`/product/${product.id}`} state={{ product }} className="block aspect-square w-full overflow-hidden bg-gray-100">
                 <img
                   src={product.imageUrl}
                   alt={product.name}
