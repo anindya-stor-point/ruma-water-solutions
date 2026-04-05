@@ -13,6 +13,7 @@ export default function UpdateChecker() {
   const { language } = useLanguage();
   const [showUpdate, setShowUpdate] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const isBengali = language === 'bn';
