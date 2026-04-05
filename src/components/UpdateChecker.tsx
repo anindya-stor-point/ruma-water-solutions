@@ -4,15 +4,10 @@ import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import React, { useState, useEffect } from "react";
-import { useRemoteConfig } from "../context/RemoteConfigContext";
-import { useLanguage } from "../context/LanguageContext";
-import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
-import { Download, X, Rocket } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { App } from "@capacitor/app";
 import { Toast } from "@capacitor/toast";
+import { Browser } from "@capacitor/browser";
 
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
@@ -35,10 +30,6 @@ export default function UpdateChecker() {
     setShowUpdate(false);
     setIsDismissed(true);
   };
-
-import { Browser } from "@capacitor/browser";
-
-// ... inside handleUpdate function ...
 
   const handleUpdate = async () => {
     if (!updateUrl) {
