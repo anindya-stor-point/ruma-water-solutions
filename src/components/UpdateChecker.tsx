@@ -9,6 +9,8 @@ import { CapacitorUpdater } from "@capgo/capacitor-updater";
 export default function UpdateChecker() {
   const { latestVersion, appVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
   const { t, language } = useLanguage(); // Assuming useLanguage provides language
+  const [showUpdate, setShowUpdate] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -16,10 +18,15 @@ export default function UpdateChecker() {
   const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'অ্যাপটি আপডেট হচ্ছে...', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'App is updating...', updateBtn: 'Update' };
 
   useEffect(() => {
-    if (!isLoading && latestVersionCode > APP_BUILD_NUMBER) {
+    if (!isLoading && latestVersionCode > APP_BUILD_NUMBER && !isDismissed) {
       setShowUpdate(true);
     }
-  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading]);
+  }, [latestVersionCode, APP_BUILD_NUMBER, isLoading, isDismissed]);
+
+  const handleDismiss = () => {
+    setShowUpdate(false);
+    setIsDismissed(true);
+  };
 
   const handleUpdate = async () => {
     setIsDownloading(true);
