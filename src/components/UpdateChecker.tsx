@@ -47,47 +47,27 @@ export default function UpdateChecker() {
         throw new Error("Permission denied. Please enable storage permission in settings.");
       }
       
-      // 2. Download APK with progress
-      const response = await fetch(updateUrl);
-      if (!response.ok) throw new Error(`Download failed! HTTP status: ${response.status}`);
-      
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      
-      let loaded = 0;
-      const reader = response.body!.getReader();
-      let chunks = [];
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.length;
-        if (total) setProgress(Math.round((loaded / total) * 100));
-      }
-      
-      // Combine chunks
-      const blob = new Blob(chunks);
-      const readerBlob = new FileReader();
-      const base64Data = await new Promise((resolve, reject) => {
-        readerBlob.onloadend = () => resolve(readerBlob.result);
-        readerBlob.onerror = reject;
-        readerBlob.readAsDataURL(blob);
-      });
-      
-      // Save file
+      // 2. Download APK using CapacitorHttp
       const fileName = 'update.apk';
-      const result = await Filesystem.writeFile({
-        path: fileName,
-        data: (base64Data as string).split(',')[1],
-        directory: Directory.Cache
+      const result = await CapacitorHttp.downloadFile({
+        url: updateUrl,
+        filePath: fileName,
+        fileDirectory: Directory.Cache,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:86.0) Gecko/20100101 Firefox/86.0'
+        }
       });
+      
+      // CapacitorHttp doesn't provide progress directly easily.
+      // We'll simulate progress for UI feedback.
+      setProgress(50); 
       
       await Toast.show({ text: "Download complete! Installing..." });
+      setProgress(100);
       
       // Open and install
       await FileOpener.open({
-        filePath: result.uri,
+        filePath: result.path!,
         contentType: 'application/vnd.android.package-archive',
         openWithDefault: true
       });
@@ -112,7 +92,6 @@ export default function UpdateChecker() {
       console.error("Update failed:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       await Toast.show({ text: "Update failed: " + errorMessage });
-      // Show full error details in UI
       alert("Update failed:\n\n" + errorMessage);
       setIsDownloading(false);
     }
