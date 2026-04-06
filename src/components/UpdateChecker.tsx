@@ -44,81 +44,76 @@ export default function UpdateChecker() {
       // 1. Request Permissions
       const status = await Filesystem.requestPermissions();
       if (status.publicStorage !== 'granted') {
-        await Toast.show({ text: "Permission denied. Please enable in settings." });
-        setIsDownloading(false);
-        return;
+        throw new Error("Permission denied. Please enable storage permission in settings.");
       }
       
-      // 2. Download APK with progress (Try direct fetch, fallback to browser)
-      try {
-        const response = await fetch(updateUrl);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const contentLength = response.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength, 10) : 0;
-        
-        let loaded = 0;
-        const reader = response.body!.getReader();
-        let chunks = [];
-        
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-          loaded += value.length;
-          if (total) setProgress(Math.round((loaded / total) * 100));
-        }
-        
-        // Combine chunks
-        const blob = new Blob(chunks);
-        const readerBlob = new FileReader();
-        const base64Data = await new Promise((resolve) => {
-          readerBlob.onloadend = () => resolve(readerBlob.result);
-          readerBlob.readAsDataURL(blob);
-        });
-        
-        // Save file
-        const fileName = 'update.apk';
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: (base64Data as string).split(',')[1],
-          directory: Directory.Cache
-        });
-        
-        await Toast.show({ text: "Download complete! Installing..." });
-        
-        // Open and install
-        await FileOpener.open({
-          filePath: result.uri,
-          contentType: 'application/vnd.android.package-archive',
-          openWithDefault: true
-        });
-        
-        // Auto-delete after 10 seconds
-        setTimeout(async () => {
-          try {
-            await Filesystem.deleteFile({
-              path: fileName,
-              directory: Directory.Cache
-            });
-            console.log("APK deleted successfully");
-          } catch (e) {
-            console.error("Failed to delete APK:", e);
-          }
-        }, 10000);
-        
-      } catch (fetchError) {
-        console.warn("Direct download failed, falling back to browser:", fetchError);
-        await Browser.open({ url: updateUrl });
-        await Toast.show({ text: "Download started in browser..." });
+      // 2. Download APK with progress
+      const response = await fetch(updateUrl);
+      if (!response.ok) throw new Error(`Download failed! HTTP status: ${response.status}`);
+      
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      
+      let loaded = 0;
+      const reader = response.body!.getReader();
+      let chunks = [];
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        if (total) setProgress(Math.round((loaded / total) * 100));
       }
+      
+      // Combine chunks
+      const blob = new Blob(chunks);
+      const readerBlob = new FileReader();
+      const base64Data = await new Promise((resolve, reject) => {
+        readerBlob.onloadend = () => resolve(readerBlob.result);
+        readerBlob.onerror = reject;
+        readerBlob.readAsDataURL(blob);
+      });
+      
+      // Save file
+      const fileName = 'update.apk';
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: (base64Data as string).split(',')[1],
+        directory: Directory.Cache
+      });
+      
+      await Toast.show({ text: "Download complete! Installing..." });
+      
+      // Open and install
+      await FileOpener.open({
+        filePath: result.uri,
+        contentType: 'application/vnd.android.package-archive',
+        openWithDefault: true
+      });
+      
+      // Auto-delete after 10 seconds
+      setTimeout(async () => {
+        try {
+          await Filesystem.deleteFile({
+            path: fileName,
+            directory: Directory.Cache
+          });
+          console.log("APK deleted successfully");
+        } catch (e) {
+          console.error("Failed to delete APK:", e);
+        }
+      }, 10000);
       
       setIsDownloading(false);
       setShowUpdate(false);
 
     } catch (error) {
       console.error("Update failed:", error);
-      await Toast.show({ text: "Update failed: " + (error as Error).message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await Toast.show({ text: "Update failed: " + errorMessage });
+      // Show full error details in UI
+      alert("Update failed:\n\n" + errorMessage);
       setIsDownloading(false);
     }
   };
