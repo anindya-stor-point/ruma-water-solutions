@@ -50,13 +50,22 @@ export default function UpdateChecker() {
       
       // 2. Download APK using CapacitorHttp
       const fileName = 'update.apk';
-      const result = await CapacitorHttp.downloadFile({
+      const response = await CapacitorHttp.request({
+        method: 'GET',
         url: updateUrl,
-        filePath: fileName,
-        fileDirectory: Directory.Cache,
+        responseType: 'blob',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:86.0) Gecko/20100101 Firefox/86.0'
         }
+      });
+
+      if (response.status !== 200) throw new Error(`Download failed! Status: ${response.status}`);
+
+      // Save file
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: response.data, // CapacitorHttp returns base64 string for blob responseType
+        directory: Directory.Cache
       });
       
       // CapacitorHttp doesn't provide progress directly easily.
@@ -68,7 +77,7 @@ export default function UpdateChecker() {
       
       // Open and install
       await FileOpener.open({
-        filePath: result.path!,
+        filePath: result.uri,
         contentType: 'application/vnd.android.package-archive',
         openWithDefault: true
       });
