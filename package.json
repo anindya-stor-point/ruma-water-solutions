@@ -22,7 +22,7 @@
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/filesystem": "^8.1.2",
-    "@capacitor/http": "^0.0.2",
+    "@capacitor/http": "^8.0.0",
     "@capacitor/toast": "^8.0.1",
     "@capgo/capacitor-updater": "^8.45.1",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
