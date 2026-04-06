@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import { FileOpener } from "@capacitor-community/file-opener";
+import { Browser } from "@capacitor/browser";
 
 export default function UpdateChecker() {
   const { latestVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
