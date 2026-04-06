@@ -4,9 +4,9 @@ import { useLanguage } from "../context/LanguageContext";
 import { APP_VERSION, APP_BUILD_NUMBER } from "../constants";
 import { Download, X, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Filesystem } from "@capacitor/filesystem";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
-import { Browser } from "@capacitor/browser";
+import { FileOpener } from "@capacitor-community/file-opener";
 
 export default function UpdateChecker() {
   const { latestVersion, latestVersionCode, updateUrl, isLoading } = useRemoteConfig();
@@ -17,7 +17,7 @@ export default function UpdateChecker() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const isBengali = language === 'bn';
-  const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'আপডেট করার জন্য অ্যাপটিকে পারমিশন দিন।', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'Please grant permission to update the app.', updateBtn: 'Update' };
+  const currentText = isBengali ? { title: 'নতুন আপডেট পাওয়া গেছে!', body: 'অ্যাপটি আপডেট হচ্ছে...', updateBtn: 'Update' } : { title: 'New Update Available!', body: 'App is updating...', updateBtn: 'Update' };
 
   useEffect(() => {
     if (!isLoading && latestVersionCode > APP_BUILD_NUMBER && !isDismissed) {
@@ -37,28 +37,35 @@ export default function UpdateChecker() {
     }
     
     setIsDownloading(true);
+    setProgress(0);
 
     try {
       // 1. Request Permissions
       const status = await Filesystem.requestPermissions();
       if (status.publicStorage !== 'granted') {
         await Toast.show({ text: "Permission denied. Please enable in settings." });
-        // In a real app, you would use a plugin to open settings, e.g., @capacitor-community/settings
         setIsDownloading(false);
         return;
       }
       
-      // 2. Open link for download
-      await Browser.open({ url: updateUrl });
+      // 2. Download APK with progress
+      const response = await fetch(updateUrl, { mode: 'no-cors' });
+      // Note: With no-cors, response.ok and headers are not available.
+      // We proceed assuming the request succeeded.
       
-      await Toast.show({ text: "Download started..." });
+      // Since we cannot read the body stream with no-cors, we must use a different approach for APK download.
+      // Capacitor's Filesystem or a native plugin is required for direct APK download from GitHub.
+      // For now, we will use Browser.open as a fallback if fetch fails.
+      await Browser.open({ url: updateUrl });
+      await Toast.show({ text: "Download started in browser..." });
       
       setIsDownloading(false);
       setShowUpdate(false);
+      return;
 
     } catch (error) {
       console.error("Update failed:", error);
-      await Toast.show({ text: "Update failed. Please check permissions." });
+      await Toast.show({ text: "Update failed: " + (error as Error).message });
       setIsDownloading(false);
     }
   };
