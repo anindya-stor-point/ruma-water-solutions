@@ -4,7 +4,7 @@ import { Ticket, Send, User, Mail, AlertCircle, ArrowLeft, CheckCircle2, Message
 import { useLanguage } from "../context/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { safeStringify } from "../firebase";
+import { safeStringify, getApiUrl } from "../firebase";
 
 export default function CustomerCare() {
   const { t } = useLanguage();
@@ -24,7 +24,7 @@ export default function CustomerCare() {
       
       setIsSubmitting(true);
       try {
-        const response = await fetch('/api/support-ticket', {
+        const response = await fetch(getApiUrl('/api/support-ticket'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: safeStringify(formData),

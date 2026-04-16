@@ -5,7 +5,7 @@ import { Link, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 import { toast } from "sonner";
 import { Package, ShoppingBag, Settings as SettingsIcon, Plus, Edit, Trash2, ShieldCheck, ShieldAlert, Mail, X, Scan, Upload as UploadIcon, Camera, ArrowLeft, Star } from "lucide-react";
 import { Html5Qrcode, Html5QrcodeScanType } from 'html5-qrcode';
-import { db, storage, OperationType, handleFirestoreError, safeStringify, safeLog, safeError, auth } from "../firebase";
+import { db, storage, OperationType, handleFirestoreError, safeStringify, safeLog, safeError, auth, getApiUrl } from "../firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, setDoc, orderBy, where } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { compressImage, compressImageToFile } from "../lib/imageUtils";
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setIsVerifying(true);
     try {
-      const response = await fetch("/api/admin-password", {
+      const response = await fetch(getApiUrl("/api/admin-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword }),
@@ -227,7 +227,7 @@ function AdminTickets({ user }: { user: any }) {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await fetch('/api/admin/tickets', {
+        const response = await fetch(getApiUrl('/api/admin/tickets'), {
           headers: {
             'x-user-id': user.uid,
             'x-user-role': user.role
@@ -257,7 +257,7 @@ function AdminTickets({ user }: { user: any }) {
   const deleteTicket = async (id: string) => {
     safeLog('Attempting to delete ticket:', id, 'User ID:', user?.uid);
     try {
-      const response = await fetch(`/api/admin/tickets/${id}`, {
+      const response = await fetch(getApiUrl(`/api/admin/tickets/${id}`), {
         method: 'DELETE',
         headers: {
           'x-user-id': user.uid,
@@ -1007,7 +1007,7 @@ function AdminOrders({ user }: { user: any }) {
 
       // Send email notification via backend
       try {
-        await fetch('/api/notify-order-status', {
+        await fetch(getApiUrl('/api/notify-order-status'), {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -1280,7 +1280,7 @@ function AdminSettings({ user }: { user: any }) {
       return;
     }
     
-    const response = await fetch("/api/admin-password/change", {
+    const response = await fetch(getApiUrl("/api/admin-password/change"), {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",

@@ -106,21 +106,31 @@ export default function ProductDetails() {
     let collectionName = (location.state as any)?.collection || "products";
     
     const fetchProduct = async () => {
-      let productRef = doc(db, collectionName, id);
-      let docSnap = await getDoc(productRef);
+      let docSnap;
       
-      // Fallback: try the other collection if not found
-      if (!docSnap.exists()) {
+      try {
+        const productRef = doc(db, collectionName, id!);
+        docSnap = await getDoc(productRef);
+      } catch (e) {
+        safeError(`Error fetching from ${collectionName}:`, e);
+      }
+      
+      // Fallback: try the other collection if not found or if first fetch failed
+      if (!docSnap || !docSnap.exists()) {
         const fallbackCollection = collectionName === "products" ? "specialProducts" : "products";
-        const fallbackRef = doc(db, fallbackCollection, id);
-        const fallbackSnap = await getDoc(fallbackRef);
-        if (fallbackSnap.exists()) {
-          docSnap = fallbackSnap;
-          collectionName = fallbackCollection; // Update for subsequent use
+        try {
+          const fallbackRef = doc(db, fallbackCollection, id!);
+          const fallbackSnap = await getDoc(fallbackRef);
+          if (fallbackSnap.exists()) {
+            docSnap = fallbackSnap;
+            collectionName = fallbackCollection; // Update for subsequent use
+          }
+        } catch (e) {
+          safeError(`Error fetching from fallback ${fallbackCollection}:`, e);
         }
       }
 
-      if (docSnap.exists()) {
+      if (docSnap && docSnap.exists()) {
         const data = docSnap.data();
         setProduct({ id: docSnap.id, ...data } as Product);
         if (isFirstLoad.current) {

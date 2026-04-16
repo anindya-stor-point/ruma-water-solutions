@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage, Language } from "../context/LanguageContext";
 import CustomerCare from "./CustomerCare";
-import { db, OperationType, handleFirestoreError, safeError, auth } from "../firebase";
+import { db, OperationType, handleFirestoreError, safeError, auth, getApiUrl } from "../firebase";
 import { doc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { APP_VERSION, APP_BUILD_NUMBER, BuildConfig } from "../constants";
 import { 
@@ -64,7 +64,7 @@ export default function Profile() {
     setError("");
     setSuccess("");
     try {
-      const response = await fetch("/api/admin-password", {
+      const response = await fetch(getApiUrl("/api/admin-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword }),

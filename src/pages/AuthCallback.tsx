@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { safeStringify, safeError } from "../firebase";
+import { safeStringify, safeError, getApiUrl } from "../firebase";
 import WaterLoadingAnimation from "../components/WaterLoadingAnimation";
 
 export default function AuthCallback() {
@@ -12,7 +12,7 @@ export default function AuthCallback() {
     
     if (code) {
       // Send code to backend to exchange for token
-      fetch("/api/auth/google/callback", {
+      fetch(getApiUrl("/api/auth/google/callback"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: safeStringify({ code }),

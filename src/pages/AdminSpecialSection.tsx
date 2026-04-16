@@ -119,10 +119,10 @@ export default function AdminSpecialSection() {
         const storageRef = ref(storage, `special_products/${Date.now()}_${imageFile.name}`);
         
         try {
-          // Try upload with a 10s timeout
+          // Try upload with a 20s timeout
           const uploadPromise = uploadString(storageRef, base64Image, 'data_url');
           const uploadTimeout = new Promise<null>((_, reject) => 
-            setTimeout(() => reject(new Error("Storage timeout")), 10000)
+            setTimeout(() => reject(new Error("Storage timeout")), 20000)
           );
 
           const uploadResult = await Promise.race([uploadPromise, uploadTimeout]);
@@ -145,19 +145,25 @@ export default function AdminSpecialSection() {
 
       setUploadStatus("Saving to database...");
       console.log("Adding document to Firestore...");
-      await addDoc(collection(db, "specialProducts"), {
-        ...newProduct,
-        imageUrl: finalImageUrl,
-        assignedUserId: selectedUser.id,
-        createdAt: serverTimestamp()
-      });
       
-      toast.success("Special product added successfully!");
-      setShowAddProduct(false);
-      setNewProduct({ name: "", price: 0, stock: 0, imageUrl: "", description: "" });
-      setImageFile(null);
-      setUploadProgress(0);
-      setUploadStatus("");
+      try {
+        await addDoc(collection(db, "specialProducts"), {
+          ...newProduct,
+          imageUrl: finalImageUrl,
+          assignedUserId: selectedUser.id,
+          createdAt: serverTimestamp()
+        });
+        
+        toast.success("Special product added successfully!");
+        setShowAddProduct(false);
+        setNewProduct({ name: "", price: 0, stock: 0, imageUrl: "", description: "" });
+        setImageFile(null);
+        setUploadProgress(0);
+        setUploadStatus("");
+      } catch (firestoreError: any) {
+        console.error("Firestore error in addSpecialProduct:", firestoreError);
+        toast.error("Database error: " + (firestoreError.message || "Could not save product."));
+      }
     } catch (error: any) {
       console.error("Critical error in addSpecialProduct:", error);
       toast.error(error.message || "Failed to add product. Please try again.");

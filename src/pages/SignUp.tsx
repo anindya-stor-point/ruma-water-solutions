@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, updateProfile, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, safeStringify, safeError } from "../firebase";
+import { auth, db, safeStringify, safeError, getApiUrl } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
@@ -62,7 +62,7 @@ export default function SignUp() {
 
       // Send welcome email via backend
       try {
-        await fetch('/api/notify-registration', {
+        await fetch(getApiUrl('/api/notify-registration'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: safeStringify({ name, email }),

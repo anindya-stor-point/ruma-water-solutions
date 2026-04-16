@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { doc, getDoc, addDoc, collection, updateDoc, onSnapshot, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage, safeStringify, handleFirestoreError, OperationType, safeLog, safeError } from "../firebase";
+import { db, storage, safeStringify, handleFirestoreError, OperationType, safeLog, safeError, getApiUrl } from "../firebase";
 import { GoogleGenAI } from "@google/genai";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -35,7 +35,9 @@ export default function DirectCheckout() {
   const step = parseInt(stepParam || "1") as 1 | 2 | 3;
 
   const setStep = (newStep: number) => {
-    navigate(`/checkout/${id}/${newStep}`, { replace: true, state: location.state });
+    // Use replace: true when going backward to keep history clean
+    const isBackward = newStep < step;
+    navigate(`/checkout/${id}/${newStep}`, { replace: isBackward, state: location.state });
   };
 
   const [product, setProduct] = useState<Product | null>(() => {
@@ -183,17 +185,26 @@ export default function DirectCheckout() {
 
       try {
         let collectionName = (location.state as any)?.collection || "products";
-        let docRef = doc(db, collectionName, id);
-        let docSnap = await getDoc(docRef);
+        let docSnap;
         
-        // Fallback: try the other collection if not found (e.g. on page refresh)
-        if (!docSnap.exists()) {
+        try {
+          const docRef = doc(db, collectionName, id!);
+          docSnap = await getDoc(docRef);
+        } catch (e) {
+          safeError(`Error fetching from ${collectionName}:`, e);
+        }
+        
+        // Fallback: try the other collection if not found or if first fetch failed
+        if (!docSnap || !docSnap.exists()) {
           const fallbackCollection = collectionName === "products" ? "specialProducts" : "products";
-          const fallbackRef = doc(db, fallbackCollection, id);
-          const fallbackSnap = await getDoc(fallbackRef);
-          
-          if (fallbackSnap.exists()) {
-            docSnap = fallbackSnap;
+          try {
+            const fallbackRef = doc(db, fallbackCollection, id!);
+            const fallbackSnap = await getDoc(fallbackRef);
+            if (fallbackSnap.exists()) {
+              docSnap = fallbackSnap;
+            }
+          } catch (e) {
+            safeError(`Error fetching from fallback ${fallbackCollection}:`, e);
           }
         }
 
@@ -202,8 +213,7 @@ export default function DirectCheckout() {
           setProduct({ id: docSnap.id, ...data } as Product);
           
           // If no quantity was passed or saved, use minOrderLimit
-          const urlId = window.location.hash.split('/').filter(Boolean).pop();
-          const savedQuantity = localStorage.getItem(`checkout_quantity_${urlId}`);
+          const savedQuantity = localStorage.getItem(`checkout_quantity_${id}`);
           const minLimit = data.minOrderLimit || 24;
           
           if (!savedQuantity && !(location.state as any)?.quantity) {
@@ -406,7 +416,7 @@ export default function DirectCheckout() {
 
       // Send email notification via backend
       try {
-        await fetch('/api/notify-order', {
+        await fetch(getApiUrl('/api/notify-order'), {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -588,7 +598,7 @@ export default function DirectCheckout() {
                         const collectionName = (location.state as any)?.collection || "products";
                         navigate(`/product/${id}`, { 
                           state: { ...location.state, collection: collectionName },
-                          replace: true 
+                          replace: true
                         });
                       }}
                       className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"

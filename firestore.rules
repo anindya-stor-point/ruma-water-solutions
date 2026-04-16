@@ -127,7 +127,7 @@ service cloud.firestore {
     }
 
     match /specialProducts/{productId} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.assignedUserId == request.auth.uid);
+      allow read: if isAdmin() || (isAuthenticated() && (resource == null || resource.data.assignedUserId == request.auth.uid));
       allow write: if isAdmin();
     }
 

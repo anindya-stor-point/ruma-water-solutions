@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, signOut, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, safeStringify, db, safeLog, safeError } from "../firebase";
+import { auth, safeStringify, db, safeLog, safeError, getApiUrl } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { AlertCircle } from "lucide-react";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -46,7 +46,7 @@ export default function Login() {
       const deviceInfo = navigator.userAgent.split(')')[0].split('(')[1] || navigator.platform;
       const loginTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       
-      const response = await fetch('/api/notify-login', {
+      const response = await fetch(getApiUrl('/api/notify-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: safeStringify({

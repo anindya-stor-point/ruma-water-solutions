@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { APP_VERSION } from "../constants";
+import { getApiUrl } from "../firebase";
 
 export default function Settings() {
   const [tapCount, setTapCount] = useState(0);
@@ -40,7 +41,7 @@ export default function Settings() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const response = await fetch("/api/admin-password", {
+    const response = await fetch(getApiUrl("/api/admin-password"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
@@ -58,7 +59,7 @@ export default function Settings() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const response = await fetch("/api/admin-password/update", {
+    const response = await fetch(getApiUrl("/api/admin-password/update"), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ oldPassword, newPassword }),

@@ -190,6 +190,20 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(jsonString);
 }
 
+/**
+ * Gets the absolute API URL, ensuring compatibility with Capacitor/Mobile.
+ */
+export const getApiUrl = (path: string) => {
+  const baseUrl = process.env.APP_URL || "";
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  
+  if (baseUrl && (window.location.origin.startsWith('capacitor') || window.location.origin.startsWith('http://localhost'))) {
+    return `${baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl}${normalizedPath}`;
+  }
+  
+  return normalizedPath;
+};
+
 // Test connection to Firestore with retries and better error reporting
 async function testConnection(retries = 5) {
   const databaseId = firebaseConfig.firestoreDatabaseId || "(default)";
