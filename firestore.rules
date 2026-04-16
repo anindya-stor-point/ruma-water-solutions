@@ -121,6 +121,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /specialCodes/{codeId} {
+      allow read: if isAdmin() || (isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid));
+      allow write: if isAdmin();
+    }
+
+    match /specialProducts/{productId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.assignedUserId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
     match /_connection_test_/{ping} {
       allow read: if true;
     }

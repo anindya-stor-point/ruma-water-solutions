@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import { Link, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { Package, ShoppingBag, Settings as SettingsIcon, Plus, Edit, Trash2, ShieldCheck, ShieldAlert, Mail, X, Scan, Upload as UploadIcon, Camera, ArrowLeft } from "lucide-react";
+import { Package, ShoppingBag, Settings as SettingsIcon, Plus, Edit, Trash2, ShieldCheck, ShieldAlert, Mail, X, Scan, Upload as UploadIcon, Camera, ArrowLeft, Star } from "lucide-react";
 import { Html5Qrcode, Html5QrcodeScanType } from 'html5-qrcode';
 import { db, storage, OperationType, handleFirestoreError, safeStringify, safeLog, safeError, auth } from "../firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, setDoc, orderBy, where } from "firebase/firestore";
@@ -11,6 +11,7 @@ import { ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase
 import { compressImage, compressImageToFile } from "../lib/imageUtils";
 import ImageModal from "../components/ImageModal";
 import WaterLoadingAnimation from "../components/WaterLoadingAnimation";
+import AdminSpecialSection from "./AdminSpecialSection";
 
 interface Product {
   id: string;
@@ -49,6 +50,9 @@ interface Settings {
   paymentMethods: string[];
   isCardPaymentEnabled?: boolean;
   isCodEnabled?: boolean;
+  upiId?: string;
+  upiQrCode?: string;
+  isOnlinePaymentEnabled?: boolean;
 }
 
 export default function AdminDashboard() {
@@ -143,6 +147,7 @@ export default function AdminDashboard() {
   const tabs = [
     { name: "Products", path: "/admin", icon: Package },
     { name: "Orders", path: "/admin/orders", icon: ShoppingBag },
+    { name: "Special", path: "/admin/special", icon: Star },
     { name: "Tickets", path: "/admin/tickets", icon: Mail },
     { name: "Settings", path: "/admin/settings", icon: SettingsIcon },
     { name: "Payment Settings", path: "/admin/payment-settings", icon: SettingsIcon },
@@ -198,6 +203,7 @@ export default function AdminDashboard() {
         <Routes>
           <Route path="/" element={<AdminProducts user={user} />} />
           <Route path="/orders" element={<AdminOrders user={user} />} />
+          <Route path="/special" element={<AdminSpecialSection />} />
           <Route path="/tickets" element={<AdminTickets user={user} />} />
           <Route path="/settings" element={<AdminSettings user={user} />} />
           <Route path="/payment-settings" element={<PaymentSettings user={user} />} />

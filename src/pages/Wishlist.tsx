@@ -53,9 +53,9 @@ export default function Wishlist() {
               <div key={item.productId} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-square overflow-hidden bg-gray-50">
                   <img 
-                    src={item.imageUrl} 
+                    src={item.imageUrl || undefined} 
                     alt={item.name} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
                     referrerPolicy="no-referrer"
                   />
                   <button

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { doc, getDoc, addDoc, collection, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, updateDoc, onSnapshot, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, safeStringify, handleFirestoreError, OperationType, safeLog, safeError } from "../firebase";
 import { GoogleGenAI } from "@google/genai";
@@ -35,7 +35,7 @@ export default function DirectCheckout() {
   const step = parseInt(stepParam || "1") as 1 | 2 | 3;
 
   const setStep = (newStep: number) => {
-    navigate(`/checkout/${id}/${newStep}`);
+    navigate(`/checkout/${id}/${newStep}`, { replace: true, state: location.state });
   };
 
   const [product, setProduct] = useState<Product | null>(() => {
@@ -90,7 +90,7 @@ export default function DirectCheckout() {
     }
   };
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!product);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Customer Details State
@@ -177,9 +177,26 @@ export default function DirectCheckout() {
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
+      
+      // If we already have the product from state, we don't need to show loading
+      if (product) setIsLoading(false);
+
       try {
-        const docRef = doc(db, "products", id);
-        const docSnap = await getDoc(docRef);
+        let collectionName = (location.state as any)?.collection || "products";
+        let docRef = doc(db, collectionName, id);
+        let docSnap = await getDoc(docRef);
+        
+        // Fallback: try the other collection if not found (e.g. on page refresh)
+        if (!docSnap.exists()) {
+          const fallbackCollection = collectionName === "products" ? "specialProducts" : "products";
+          const fallbackRef = doc(db, fallbackCollection, id);
+          const fallbackSnap = await getDoc(fallbackRef);
+          
+          if (fallbackSnap.exists()) {
+            docSnap = fallbackSnap;
+          }
+        }
+
         if (docSnap.exists()) {
           const data = docSnap.data();
           setProduct({ id: docSnap.id, ...data } as Product);
@@ -196,13 +213,13 @@ export default function DirectCheckout() {
           } else if ((location.state as any)?.quantity && (location.state as any)?.quantity < minLimit) {
             setQuantity(minLimit);
           }
-        } else {
+        } else if (!product) {
           toast.error("Product not found");
           navigate("/");
         }
       } catch (error) {
         safeError("Error fetching data:", error);
-        toast.error("Failed to load details");
+        if (!product) toast.error("Failed to load details");
       } finally {
         setIsLoading(false);
       }
@@ -404,13 +421,14 @@ export default function DirectCheckout() {
       }
 
       // Update stock
-      const productRef = doc(db, "products", product.id);
+      const collectionName = (location.state as any)?.collection || "products";
+      const productRef = doc(db, collectionName, product.id);
       try {
         await updateDoc(productRef, {
           stock: Math.max(0, product.stock - quantity)
         });
       } catch (error) {
-        handleFirestoreError(error, OperationType.UPDATE, `products/${product.id}`);
+        handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${product.id}`);
         throw error;
       }
 
@@ -470,7 +488,7 @@ export default function DirectCheckout() {
         {/* STEP 1: Product Details */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-6 sm:p-8">
+            <div className="p-4 sm:p-8">
               <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{t('checkout.product_details')}</h2>
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="w-full md:w-1/2">
@@ -567,11 +585,11 @@ export default function DirectCheckout() {
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
-                        if (window.history.state && window.history.state.idx > 0) {
-                          navigate(-1);
-                        } else {
-                          navigate("/", { replace: true });
-                        }
+                        const collectionName = (location.state as any)?.collection || "products";
+                        navigate(`/product/${id}`, { 
+                          state: { ...location.state, collection: collectionName },
+                          replace: true 
+                        });
                       }}
                       className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
                     >
@@ -593,7 +611,7 @@ export default function DirectCheckout() {
         {/* STEP 2: Customer Details */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-6 sm:p-8">
+            <div className="p-4 sm:p-8">
               <div className="flex items-center gap-4 mb-6">
                 <button onClick={() => setStep(1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <ArrowLeft className="w-6 h-6 text-gray-600" />
@@ -748,7 +766,7 @@ export default function DirectCheckout() {
         {/* STEP 3: Payment */}
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-6 sm:p-8">
+            <div className="p-4 sm:p-8">
               <div className="flex items-center gap-4 mb-6">
                 <button onClick={() => setStep(2)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <ArrowLeft className="w-6 h-6 text-gray-600" />

@@ -41,17 +41,22 @@ export default function SplashScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false);
       // Check auth state and navigate accordingly
       const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setLoading(false);
         if (user) {
-          navigate('/home', { replace: true });
+          const specialCode = localStorage.getItem(`special_code_${user.uid}`);
+          if (specialCode) {
+            navigate('/special', { replace: true });
+          } else {
+            navigate('/home', { replace: true });
+          }
         } else {
           navigate('/signup', { replace: true });
         }
         unsubscribe();
       });
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [navigate]);

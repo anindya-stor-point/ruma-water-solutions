@@ -175,7 +175,7 @@ export default function Cart() {
                       <Link to={`/product/${product.id}`} className="block bg-white rounded-2xl p-3 border border-gray-100 hover:shadow-xl hover:shadow-indigo-50 transition-all duration-300">
                         <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-gray-50">
                           <img 
-                            src={product.imageUrl} 
+                            src={product.imageUrl || undefined} 
                             alt={product.name} 
                             className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500"
                             referrerPolicy="no-referrer"

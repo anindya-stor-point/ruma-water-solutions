@@ -5,7 +5,7 @@
 
 // Main application component
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Routes, Route, useLocation, Link, useNavigate, Navigate } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, useLocation, Link, useNavigate, Navigate, useParams } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
@@ -39,11 +39,19 @@ import About from "./pages/About";
 import CustomerCare from "./pages/CustomerCare";
 import Wishlist from "./pages/Wishlist";
 import OrderHistory from "./pages/OrderHistory";
+import SpecialSection from "./pages/SpecialSection";
+import AdminSpecialSection from "./pages/AdminSpecialSection";
 import { useAuth } from "./context/AuthContext";
 import { db, safeLog, safeError } from "./firebase";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+
+const CheckoutRedirect = () => {
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  return <Navigate to={`/checkout/${id}/1`} state={location.state} replace />;
+};
 
 const ProtectedRoute = ({ children, requireVerification = true }: { children: React.ReactNode, requireVerification?: boolean }) => {
   const { user, loading } = useAuth();
@@ -167,7 +175,7 @@ function AppContent({ isRouteReady }: { isRouteReady: boolean }) {
           )}
           <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             <Navbar />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
               <Routes>
                 <Route path="/" element={<SplashScreen />} />
                 <Route path="/home" element={<Home />} />
@@ -179,6 +187,8 @@ function AppContent({ isRouteReady }: { isRouteReady: boolean }) {
                 <Route path="/customer-care" element={<CustomerCare />} />
                 <Route path="/scan" element={<BarcodeScanner />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/admin/special" element={<ProtectedRoute><AdminSpecialSection /></ProtectedRoute>} />
+                <Route path="/special" element={<ProtectedRoute><SpecialSection /></ProtectedRoute>} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
@@ -187,7 +197,7 @@ function AppContent({ isRouteReady }: { isRouteReady: boolean }) {
                 
                 {/* Protected Routes */}
                 <Route path="/checkout/:id/:step" element={<ProtectedRoute><DirectCheckout /></ProtectedRoute>} />
-                <Route path="/checkout/:id" element={<Navigate to="1" replace />} />
+                <Route path="/checkout/:id" element={<CheckoutRedirect />} />
                 <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute requireVerification={false}><Profile /></ProtectedRoute>} />

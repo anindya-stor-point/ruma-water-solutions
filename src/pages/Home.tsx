@@ -6,7 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Heart, Search, Filter, X, ScanLine } from "lucide-react";
-import { OperationType, handleFirestoreError } from "../firebase";
+import { OperationType, handleFirestoreError, auth } from "../firebase";
 import Fuse from "fuse.js";
 
 interface Product {
@@ -40,6 +40,18 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirect to special dashboard if special mode is active
+    const checkSpecialMode = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const specialCode = localStorage.getItem(`special_code_${user.uid}`);
+        if (specialCode) {
+          navigate("/special", { replace: true });
+        }
+      }
+    };
+    checkSpecialMode();
+
     if (sessionStorage.getItem("access_denied") === "true") {
       setAccessDenied(true);
       sessionStorage.removeItem("access_denied");
@@ -122,7 +134,7 @@ export default function Home() {
         </div>
       )}
       <div className="text-center pt-4 md:pt-8 pb-8 md:pb-12 px-4">
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-900 mb-4 md:mb-6 tracking-tighter leading-tight">
+        <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-gray-900 mb-4 md:mb-6 tracking-tighter leading-tight">
           {t('home.hero_title_1')} <span className="text-indigo-700">{t('home.hero_title_2')}</span>
         </h1>
         <p className="text-lg md:text-2xl text-gray-600 font-medium max-w-3xl mx-auto leading-relaxed mb-8 md:mb-10">
@@ -266,7 +278,7 @@ export default function Home() {
               )}
               <Link to={`/product/${product.id}`} state={{ product }} className="block aspect-square w-full overflow-hidden bg-gray-100">
                 <img
-                  src={product.imageUrl}
+                  src={product.imageUrl || undefined}
                   alt={product.name}
                   className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"

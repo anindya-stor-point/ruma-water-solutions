@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User as UserIcon, LogOut, Settings, Package, Heart, ShoppingBag, Menu, X as CloseIcon, ScanLine } from "lucide-react";
+import { ShoppingCart, User as UserIcon, LogOut, Settings, Package, Heart, ShoppingBag, Menu, X as CloseIcon, ScanLine, Star } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -56,11 +56,11 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-3 group">
             {appLogo && (
               <div className="relative">
-                <img src={appLogo} alt={appName} className="w-12 h-12 object-contain rounded-lg" referrerPolicy="no-referrer" />
+                <img src={appLogo || undefined} alt={appName} className="w-12 h-12 object-contain rounded-lg" referrerPolicy="no-referrer" />
               </div>
             )}
             <div className="flex flex-col leading-none">
-              <span className="text-3xl font-black text-gray-900 tracking-tighter uppercase">{appName}</span>
+              <span className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tighter uppercase">{appName}</span>
               {tagline && (
                 <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mt-0.5 ml-0.5">{tagline}</span>
               )}
@@ -85,6 +85,10 @@ export default function Navbar() {
               <ShoppingCart className="w-6 h-6" />
             </Link>
 
+            <Link to="/special" className="text-gray-600 hover:text-amber-500 transition-colors">
+              <Star className="w-6 h-6" />
+            </Link>
+
             {user && sessionStorage.getItem("admin_verified") === "true" && (
               <Link to="/admin" className="text-gray-600 hover:text-indigo-600 flex items-center gap-1">
                 <Package className="w-5 h-5" />
@@ -94,7 +98,7 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link to="/profile" className="flex items-center gap-2 text-gray-600 hover:text-indigo-600">
-                  <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full border border-gray-200" referrerPolicy="no-referrer" />
+                  <img src={user.photoURL || undefined} alt={user.displayName} className="w-8 h-8 rounded-full border border-gray-200" referrerPolicy="no-referrer" />
                   <span className="hidden sm:inline font-medium">{user.displayName}</span>
                 </Link>
               </div>
@@ -126,9 +130,12 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            <Link to="/special" className="text-gray-600 hover:text-amber-500 transition-colors">
+              <Star className="w-6 h-6" />
+            </Link>
             {user ? (
               <Link to="/profile" className="flex items-center">
-                <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full border border-gray-200" referrerPolicy="no-referrer" />
+                <img src={user.photoURL || undefined} alt={user.displayName} className="w-8 h-8 rounded-full border border-gray-200" referrerPolicy="no-referrer" />
               </Link>
             ) : (
               <Link to="/login" className="text-gray-600 hover:text-indigo-600 transition-colors">
@@ -160,7 +167,7 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 text-gray-700 font-bold p-3 rounded-xl hover:bg-gray-50"
                 >
-                  <img src={user.photoURL} alt={user.displayName} className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
+                  <img src={user.photoURL || undefined} alt={user.displayName} className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
                   <span>{user.displayName}</span>
                 </Link>
                 <button

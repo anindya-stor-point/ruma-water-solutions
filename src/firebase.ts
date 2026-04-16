@@ -21,6 +21,7 @@ export const storage = getStorage(app);
 export const remoteConfig = getRemoteConfig(app);
 
 export let analytics: any = null;
+/* 
 isSupported().then(supported => {
   if (supported) {
     try {
@@ -30,6 +31,7 @@ isSupported().then(supported => {
     }
   }
 });
+*/
 
 export const googleProvider = new GoogleAuthProvider();
 

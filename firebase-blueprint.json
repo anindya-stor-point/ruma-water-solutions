@@ -80,6 +80,31 @@
         "createdAt": { "type": "timestamp" }
       },
       "required": ["userId", "userName", "rating", "text", "createdAt"]
+    },
+    "SpecialCode": {
+      "title": "SpecialCode",
+      "description": "A unique code to unlock special user features",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "userId": { "type": "string", "description": "The user this code is assigned to" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["code", "userId", "createdAt"]
+    },
+    "SpecialProduct": {
+      "title": "SpecialProduct",
+      "description": "A product available only to a specific special user",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "assignedUserId": { "type": "string", "description": "The special user who can see this product" }
+      },
+      "required": ["name", "price", "stock", "imageUrl", "description", "assignedUserId"]
     }
   },
   "firestore": {
@@ -97,6 +122,14 @@
     "/users/{userId}/wishlist/{productId}": {
       "schema": { "$ref": "#/entities/WishlistItem" },
       "description": "User's wishlist"
+    },
+    "/specialCodes/{codeId}": {
+      "schema": { "$ref": "#/entities/SpecialCode" },
+      "description": "Unique codes for special users"
+    },
+    "/specialProducts/{productId}": {
+      "schema": { "$ref": "#/entities/SpecialProduct" },
+      "description": "Products for special users"
     }
   }
 }

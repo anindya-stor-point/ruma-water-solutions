@@ -93,16 +93,33 @@ export default function ProductDetails() {
         return;
       }
       localStorage.setItem(`checkout_quantity_${product.id}`, quantity.toString());
+      const collectionName = (location.state as any)?.collection || "products";
       // Navigate to the checkout page, passing the product details and quantity
-      navigate(`/checkout/${product.id}`, { state: { quantity, product, step: 1 } });
+      navigate(`/checkout/${product.id}/1`, { state: { quantity, product, step: 1, collection: collectionName } });
     }
   };
 
   useEffect(() => {
     if (!id) return;
 
-    const productRef = doc(db, "products", id);
-    const unsubscribeProduct = onSnapshot(productRef, (docSnap) => {
+    // Determine which collection to fetch from
+    let collectionName = (location.state as any)?.collection || "products";
+    
+    const fetchProduct = async () => {
+      let productRef = doc(db, collectionName, id);
+      let docSnap = await getDoc(productRef);
+      
+      // Fallback: try the other collection if not found
+      if (!docSnap.exists()) {
+        const fallbackCollection = collectionName === "products" ? "specialProducts" : "products";
+        const fallbackRef = doc(db, fallbackCollection, id);
+        const fallbackSnap = await getDoc(fallbackRef);
+        if (fallbackSnap.exists()) {
+          docSnap = fallbackSnap;
+          collectionName = fallbackCollection; // Update for subsequent use
+        }
+      }
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         setProduct({ id: docSnap.id, ...data } as Product);
@@ -114,11 +131,21 @@ export default function ProductDetails() {
           }
           isFirstLoad.current = false;
         }
-      } else {
+      } else if (!product) {
         setProduct(null);
       }
+    };
+
+    fetchProduct();
+
+    // Listen for updates
+    const unsubscribeProduct = onSnapshot(doc(db, collectionName, id), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setProduct({ id: docSnap.id, ...data } as Product);
+      }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `products/${id}`);
+      handleFirestoreError(error, OperationType.GET, `${collectionName}/${id}`);
     });
 
     const reviewsQuery = query(
@@ -206,10 +233,10 @@ export default function ProductDetails() {
         {t('common.back')}
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
         <div className="flex flex-col gap-4">
           <div className="rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center aspect-square">
-            <img src={displayImages[selectedImageIndex]} alt={product.name} className="w-full h-full object-cover cursor-pointer" onClick={() => setIsModalOpen(true)} referrerPolicy="no-referrer" />
+            <img src={displayImages[selectedImageIndex] || undefined} alt={product.name} className="w-full h-full object-cover cursor-pointer" onClick={() => setIsModalOpen(true)} referrerPolicy="no-referrer" />
           </div>
           {displayImages.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
@@ -221,7 +248,7 @@ export default function ProductDetails() {
                     selectedImageIndex === idx ? 'ring-2 ring-indigo-600 ring-offset-2' : 'opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={url} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img src={url || undefined} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </button>
               ))}
             </div>
@@ -341,7 +368,7 @@ export default function ProductDetails() {
             reviews.map((review) => (
               <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                 <div className="flex items-center gap-4 mb-3">
-                  <img src={review.userPicture} alt={review.userName} className="w-10 h-10 rounded-full bg-gray-200" referrerPolicy="no-referrer" />
+                  <img src={review.userPicture || undefined} alt={review.userName} className="w-10 h-10 rounded-full bg-gray-200" referrerPolicy="no-referrer" />
                   <div>
                     <p className="font-bold text-gray-900">{review.userName}</p>
                     <div className="flex items-center text-yellow-400">
