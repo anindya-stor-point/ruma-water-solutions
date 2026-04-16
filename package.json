@@ -2,7 +2,7 @@
   "//": "Project configuration - Fixed AAPT PNG compatibility",
   "name": "ruma-water-solutions",
   "private": true,
-  "version": "30",
+  "version": "33",
   "type": "module",
   "scripts": {
     "prebuild": "tsx scripts/generate-icons.js",

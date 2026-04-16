@@ -95,7 +95,7 @@ export default function ProductDetails() {
       localStorage.setItem(`checkout_quantity_${product.id}`, quantity.toString());
       const collectionName = (location.state as any)?.collection || "products";
       // Navigate to the checkout page, passing the product details and quantity
-      navigate(`/checkout/${product.id}/1`, { state: { quantity, product, step: 1, collection: collectionName } });
+      navigate(`/checkout/${product.id}/2`, { state: { quantity, product, step: 2, collection: collectionName } });
     }
   };
 
@@ -268,7 +268,7 @@ export default function ProductDetails() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-indigo-600 font-bold uppercase tracking-widest text-sm mb-2">{product.category}</p>
-                <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">{product.name}</h1>
+                <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">{product.name} (Page 1)</h1>
                 {product.barcode && (
                   <div className="flex items-center gap-2 mt-2 text-gray-400 font-mono text-xs bg-gray-50 w-fit px-2 py-1 rounded border border-gray-100">
                     <span className="font-bold uppercase tracking-tighter text-[10px]">Barcode:</span>

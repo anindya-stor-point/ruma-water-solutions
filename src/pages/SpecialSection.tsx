@@ -196,7 +196,7 @@ export default function SpecialSection() {
                         </button>
                         <button
                           onClick={() => {
-                            navigate(`/checkout/${product.id}/1`, { state: { quantity: product.minOrderLimit || 24, product, collection: "specialProducts" } });
+                            navigate(`/checkout/${product.id}/2`, { state: { quantity: product.minOrderLimit || 24, product, collection: "specialProducts" } });
                           }}
                           className="flex-1 flex items-center justify-center py-2 rounded-lg font-bold transition-colors text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-100"
                         >

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { db, handleFirestoreError, OperationType, storage, safeLog, safeError } from "../firebase";
 import { collection, query, getDocs, doc, onSnapshot, addDoc, serverTimestamp, deleteDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { Star, Package, Plus, Trash2, User, Key, Search, X, Image as ImageIcon, Save, Upload, Loader2, AlertCircle } from "lucide-react";
+import { Star, Package, Plus, Trash2, User, Key, Search, X, Image as ImageIcon, Save, Upload, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { compressImage } from "../lib/imageUtils";
+import { useAuth } from "../context/AuthContext";
 
 export default function AdminSpecialSection() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [specialCodes, setSpecialCodes] = useState<any[]>([]);
   const [specialProducts, setSpecialProducts] = useState<any[]>([]);
@@ -17,6 +19,7 @@ export default function AdminSpecialSection() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // New Product Form
   const [newProduct, setNewProduct] = useState({
@@ -35,6 +38,7 @@ export default function AdminSpecialSection() {
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => {
       safeError("AdminSpecialSection: Users listener error", error);
+      toast.error("Failed to load users. You might not have permission.");
       handleFirestoreError(error, OperationType.LIST, "users");
     });
 
@@ -43,6 +47,7 @@ export default function AdminSpecialSection() {
       setSpecialCodes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => {
       safeError("AdminSpecialSection: Codes listener error", error);
+      toast.error("Failed to load special codes.");
       handleFirestoreError(error, OperationType.LIST, "specialCodes");
     });
 
@@ -52,6 +57,7 @@ export default function AdminSpecialSection() {
       setLoading(false);
     }, (error) => {
       safeError("AdminSpecialSection: Products listener error", error);
+      toast.error("Failed to load special products.");
       handleFirestoreError(error, OperationType.LIST, "specialProducts");
       setLoading(false);
     });
@@ -62,6 +68,22 @@ export default function AdminSpecialSection() {
       unsubProducts();
     };
   }, []);
+
+  const forceFetchUsers = async () => {
+    setRefreshing(true);
+    try {
+      safeLog("AdminSpecialSection: Force fetching users...");
+      const snapshot = await getDocs(collection(db, "users"));
+      safeLog(`AdminSpecialSection: Force fetched ${snapshot.docs.length} users`);
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      toast.success("User list refreshed!");
+    } catch (error) {
+      safeError("AdminSpecialSection: Force fetch error", error);
+      toast.error("Failed to refresh users.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const generateCode = async (userId: string) => {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -197,12 +219,25 @@ export default function AdminSpecialSection() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.displayName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const name = (u.displayName || "").toLowerCase();
+    const email = (u.email || "").toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return name.includes(search) || email.includes(search);
+  });
 
   if (loading) return <div className="p-8 text-center font-bold">Loading...</div>;
+
+  if (currentUser?.role !== 'admin') {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
+        <h2 className="text-2xl font-black uppercase">Access Denied</h2>
+        <p className="text-gray-500 font-bold">You do not have administrator privileges to view this section.</p>
+        <p className="text-xs text-gray-400">Current Role: {currentUser?.role || 'None'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 pb-20">
@@ -227,16 +262,36 @@ export default function AdminSpecialSection() {
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full md:w-64 pl-12 pr-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all font-bold"
+                  className="w-full md:w-64 pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all font-bold"
                 />
+                <button 
+                  onClick={forceFetchUsers}
+                  disabled={refreshing}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                  title="Refresh Users"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
 
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-              {filteredUsers.length === 0 ? (
+              {users.length === 0 ? (
                 <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                   <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No users found</p>
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No users registered yet</p>
+                  <button 
+                    onClick={forceFetchUsers} 
+                    className="mt-4 flex items-center gap-2 mx-auto bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-all"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+                    FORCE REFRESH
+                  </button>
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                  <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No users match your search</p>
                 </div>
               ) : (
                 filteredUsers.map((u) => {

@@ -32,12 +32,15 @@ export default function DirectCheckout() {
   const { user } = useAuth();
   const { t } = useLanguage();
   
-  const step = parseInt(stepParam || "1") as 1 | 2 | 3;
+  const step = parseInt(stepParam || "2") as 2 | 3 | 4;
 
   const setStep = (newStep: number) => {
-    // Use replace: true when going backward to keep history clean
-    const isBackward = newStep < step;
-    navigate(`/checkout/${id}/${newStep}`, { replace: isBackward, state: location.state });
+    // Use navigate(-1) for back buttons to ensure proper history stack
+    if (newStep < step) {
+      navigate(-1);
+    } else {
+      navigate(`/checkout/${id}/${newStep}`, { state: location.state });
+    }
   };
 
   const [product, setProduct] = useState<Product | null>(() => {
@@ -88,7 +91,7 @@ export default function DirectCheckout() {
         toast.error(`Quantity must be at least ${MIN_ORDER_LIMIT}`);
         return;
       }
-      setStep(2);
+      setStep(3);
     }
   };
 
@@ -280,7 +283,7 @@ export default function DirectCheckout() {
       return;
     }
 
-    setStep(3);
+    setStep(4);
   };
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
@@ -474,13 +477,13 @@ export default function DirectCheckout() {
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full -z-10"></div>
           <div 
             className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 rounded-full -z-10 transition-all duration-500"
-            style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}
+            style={{ width: step === 2 ? '0%' : step === 3 ? '50%' : '100%' }}
           ></div>
           
           {[
-            { num: 1, label: t('checkout.step_details'), icon: Package },
-            { num: 2, label: t('checkout.step_shipping'), icon: Truck },
-            { num: 3, label: t('checkout.step_payment'), icon: CreditCard }
+            { num: 2, label: t('checkout.step_details'), icon: Package },
+            { num: 3, label: t('checkout.step_shipping'), icon: Truck },
+            { num: 4, label: t('checkout.step_payment'), icon: CreditCard }
           ].map((s) => (
             <div key={s.num} className="flex flex-col items-center gap-2 bg-gray-50 px-2">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 transition-colors ${
@@ -494,12 +497,11 @@ export default function DirectCheckout() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* STEP 1: Product Details */}
-        {step === 1 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-4 sm:p-8">
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{t('checkout.product_details')}</h2>
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
+        {/* STEP 2: Product Details */}
+        {step === 2 && (
+          <div className="p-4 sm:p-8">
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{t('checkout.product_details')} (Page 2)</h2>
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="w-full md:w-1/2">
                   <img 
@@ -595,11 +597,7 @@ export default function DirectCheckout() {
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
-                        const collectionName = (location.state as any)?.collection || "products";
-                        navigate(`/product/${id}`, { 
-                          state: { ...location.state, collection: collectionName },
-                          replace: true
-                        });
+                        navigate(-1);
                       }}
                       className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
                     >
@@ -615,19 +613,17 @@ export default function DirectCheckout() {
                 </div>
               </div>
             </div>
-          </div>
         )}
 
-        {/* STEP 2: Customer Details */}
-        {step === 2 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-4 sm:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => setStep(1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <ArrowLeft className="w-6 h-6 text-gray-600" />
-                </button>
-                <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.your_details')}</h2>
-              </div>
+        {/* STEP 3: Customer Details */}
+        {step === 3 && (
+          <div className="p-4 sm:p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <button onClick={() => setStep(2)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <ArrowLeft className="w-6 h-6 text-gray-600" />
+              </button>
+              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.your_details')} (Page 3)</h2>
+            </div>
               
               <form onSubmit={handleCustomerSubmit} className="space-y-5">
                 <div>
@@ -770,19 +766,17 @@ export default function DirectCheckout() {
                 </div>
               </form>
             </div>
-          </div>
         )}
 
-        {/* STEP 3: Payment */}
-        {step === 3 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-4 sm:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => setStep(2)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <ArrowLeft className="w-6 h-6 text-gray-600" />
-                </button>
-                <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.payment')}</h2>
-              </div>
+        {/* STEP 4: Payment */}
+        {step === 4 && (
+          <div className="p-4 sm:p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <button onClick={() => setStep(3)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <ArrowLeft className="w-6 h-6 text-gray-600" />
+              </button>
+              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.payment')} (Page 4)</h2>
+            </div>
 
               {/* Order Summary removed as per user request */}
 
@@ -964,6 +958,17 @@ export default function DirectCheckout() {
                 </div>
               </form>
             </div>
+        )}
+        {/* Fallback for invalid step */}
+        {step !== 2 && step !== 3 && step !== 4 && (
+          <div className="p-12 text-center">
+            <p className="text-gray-500 font-bold mb-4">Invalid Step: {step}</p>
+            <button 
+              onClick={() => navigate(`/checkout/${id}/2`, { replace: true })}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold"
+            >
+              Go to Step 2
+            </button>
           </div>
         )}
       </div>

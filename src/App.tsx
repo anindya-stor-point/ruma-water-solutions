@@ -50,7 +50,7 @@ import { Capacitor } from '@capacitor/core';
 const CheckoutRedirect = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  return <Navigate to={`/checkout/${id}/1`} state={location.state} replace />;
+  return <Navigate to={`/checkout/${id}/2`} state={location.state} replace />;
 };
 
 const ProtectedRoute = ({ children, requireVerification = true }: { children: React.ReactNode, requireVerification?: boolean }) => {
