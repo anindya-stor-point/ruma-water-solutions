@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db, handleFirestoreError, OperationType, storage } from "../firebase";
+import { db, handleFirestoreError, OperationType, storage, safeLog, safeError } from "../firebase";
 import { collection, query, getDocs, doc, onSnapshot, addDoc, serverTimestamp, deleteDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { Star, Package, Plus, Trash2, User, Key, Search, X, Image as ImageIcon, Save, Upload, Loader2, AlertCircle } from "lucide-react";
@@ -28,16 +28,31 @@ export default function AdminSpecialSection() {
   });
 
   useEffect(() => {
+    safeLog("AdminSpecialSection: Starting data listeners...");
+    
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      safeLog(`AdminSpecialSection: Fetched ${snapshot.docs.length} users`);
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      safeError("AdminSpecialSection: Users listener error", error);
+      handleFirestoreError(error, OperationType.LIST, "users");
     });
 
     const unsubCodes = onSnapshot(collection(db, "specialCodes"), (snapshot) => {
+      safeLog(`AdminSpecialSection: Fetched ${snapshot.docs.length} special codes`);
       setSpecialCodes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      safeError("AdminSpecialSection: Codes listener error", error);
+      handleFirestoreError(error, OperationType.LIST, "specialCodes");
     });
 
     const unsubProducts = onSnapshot(collection(db, "specialProducts"), (snapshot) => {
+      safeLog(`AdminSpecialSection: Fetched ${snapshot.docs.length} special products`);
       setSpecialProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    }, (error) => {
+      safeError("AdminSpecialSection: Products listener error", error);
+      handleFirestoreError(error, OperationType.LIST, "specialProducts");
       setLoading(false);
     });
 
@@ -199,72 +214,79 @@ export default function AdminSpecialSection() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* User List & Code Generation */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
+          <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase flex items-center gap-3">
                 <User className="w-8 h-8 text-indigo-600" />
                 Users
               </h2>
-              <div className="relative">
+              <div className="relative w-full md:w-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all font-bold"
+                  className="w-full md:w-64 pl-12 pr-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all font-bold"
                 />
               </div>
             </div>
 
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-              {filteredUsers.map((u) => {
-                const userCode = specialCodes.find(c => c.userId === u.id);
-                return (
-                  <div key={u.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 hover:border-indigo-200 transition-all group">
-                    <div className="flex items-center gap-4">
-                      <img src={u.photoURL || undefined} alt={u.displayName} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" referrerPolicy="no-referrer" />
-                      <div>
-                        <p className="font-black text-gray-900 uppercase tracking-tight">{u.displayName}</p>
-                        <p className="text-gray-500 text-xs font-bold">{u.email}</p>
+              {filteredUsers.length === 0 ? (
+                <div className="text-center py-10 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                  <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No users found</p>
+                </div>
+              ) : (
+                filteredUsers.map((u) => {
+                  const userCode = specialCodes.find(c => c.userId === u.id);
+                  return (
+                    <div key={u.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 md:p-6 bg-gray-50 rounded-3xl border border-gray-100 hover:border-indigo-200 transition-all group gap-4">
+                      <div className="flex items-center gap-4">
+                        <img src={u.photoURL || undefined} alt={u.displayName} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" referrerPolicy="no-referrer" />
+                        <div className="min-w-0">
+                          <p className="font-black text-gray-900 uppercase tracking-tight truncate">{u.displayName}</p>
+                          <p className="text-gray-500 text-xs font-bold truncate">{u.email}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-end gap-3">
+                        {userCode ? (
+                          <div className="flex items-center gap-2">
+                            <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black tracking-widest text-sm shadow-lg shadow-indigo-100">
+                              {userCode.code}
+                            </div>
+                            <button 
+                              onClick={() => deleteCode(userCode.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => generateCode(u.id)}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-indigo-600 border-2 border-indigo-100 px-4 py-2 rounded-xl font-black text-xs uppercase hover:bg-indigo-600 hover:text-white transition-all whitespace-nowrap"
+                          >
+                            <Key className="w-4 h-4" />
+                            Generate Code
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedUser(u);
+                            setShowAddProduct(true);
+                          }}
+                          className="p-3 bg-gray-900 text-white rounded-xl hover:bg-indigo-600 transition-all shadow-lg shadow-gray-200"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      {userCode ? (
-                        <div className="flex items-center gap-2">
-                          <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black tracking-widest text-sm shadow-lg shadow-indigo-100">
-                            {userCode.code}
-                          </div>
-                          <button 
-                            onClick={() => deleteCode(userCode.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => generateCode(u.id)}
-                          className="flex items-center gap-2 bg-white text-indigo-600 border-2 border-indigo-100 px-4 py-2 rounded-xl font-black text-xs uppercase hover:bg-indigo-600 hover:text-white transition-all"
-                        >
-                          <Key className="w-4 h-4" />
-                          Generate Code
-                        </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setSelectedUser(u);
-                          setShowAddProduct(true);
-                        }}
-                        className="p-3 bg-gray-900 text-white rounded-xl hover:bg-indigo-600 transition-all shadow-lg shadow-gray-200"
-                      >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
