@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const userData = docSnap.data() as User;
               setUser({
                 ...userData,
-                role: firebaseUser.email === "rumawatersolutions@gmail.com" ? "admin" : (userData.role || "user"),
+                role: (firebaseUser.email === "rumawatersolutions@gmail.com" || firebaseUser.email === "haldpradip6@gmail.com") ? "admin" : (userData.role || "user"),
                 emailVerified: firebaseUser.emailVerified
               });
             } else {
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email: firebaseUser.email || "",
                 displayName: firebaseUser.displayName || "",
                 photoURL: firebaseUser.photoURL || "",
-                role: firebaseUser.email === "rumawatersolutions@gmail.com" ? "admin" : "user",
+                role: (firebaseUser.email === "rumawatersolutions@gmail.com" || firebaseUser.email === "haldpradip6@gmail.com") ? "admin" : "user",
                 emailVerified: firebaseUser.emailVerified
               });
             }

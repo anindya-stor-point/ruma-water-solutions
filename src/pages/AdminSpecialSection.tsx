@@ -20,6 +20,7 @@ export default function AdminSpecialSection() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorDesc, setErrorDesc] = useState<string | null>(null);
 
   // New Product Form
   const [newProduct, setNewProduct] = useState({
@@ -32,12 +33,15 @@ export default function AdminSpecialSection() {
 
   useEffect(() => {
     safeLog("AdminSpecialSection: Starting data listeners...");
+    setErrorDesc(null);
     
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       safeLog(`AdminSpecialSection: Fetched ${snapshot.docs.length} users`);
       setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setErrorDesc(null);
     }, (error) => {
       safeError("AdminSpecialSection: Users listener error", error);
+      setErrorDesc("Permissions: Failed to load users. Please ensure your account has the 'admin' role in the database.");
       toast.error("Failed to load users. You might not have permission.");
       handleFirestoreError(error, OperationType.LIST, "users");
     });
@@ -233,7 +237,9 @@ export default function AdminSpecialSection() {
     </div>
   );
 
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'rumawatersolutions@gmail.com';
+  const isAdmin = currentUser?.role === 'admin' || 
+                  currentUser?.email === 'rumawatersolutions@gmail.com' || 
+                  currentUser?.email === 'haldpradip6@gmail.com';
 
   if (!isAdmin) {
     return (
@@ -268,6 +274,13 @@ export default function AdminSpecialSection() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {errorDesc && (
+          <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 mb-6">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+            <p className="text-xs text-red-600 font-bold uppercase tracking-tight">{errorDesc}</p>
+          </div>
+        )}
+
         {/* User List & Code Generation */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
