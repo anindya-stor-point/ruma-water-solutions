@@ -1,6 +1,6 @@
 {
   "name": "Ruma Water",
-  "description": "Ruma Water Solutions - High-quality water storage and solutions app.",
+  "description": "Ruma Water Solutions - High-quality water storage and solutions app with specialized administrative tools for user management and order tracking.",
   "requestFramePermissions": [
     "camera"
   ]

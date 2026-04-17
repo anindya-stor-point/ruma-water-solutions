@@ -56,7 +56,7 @@ export default function SignUp() {
         email: userCredential.user.email,
         displayName: name,
         photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`,
-        role: "user",
+        role: userCredential.user.email === "rumawatersolutions@gmail.com" ? "admin" : "user",
         createdAt: serverTimestamp(),
       }, { merge: true });
 
@@ -124,7 +124,7 @@ export default function SignUp() {
         email: user.email,
         displayName: user.displayName || "",
         photoURL: user.photoURL || "",
-        role: "user",
+        role: user.email === "rumawatersolutions@gmail.com" ? "admin" : "user",
         createdAt: serverTimestamp(),
       });
       

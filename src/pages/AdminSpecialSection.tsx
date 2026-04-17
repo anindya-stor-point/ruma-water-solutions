@@ -226,15 +226,36 @@ export default function AdminSpecialSection() {
     return name.includes(search) || email.includes(search);
   });
 
-  if (loading) return <div className="p-8 text-center font-bold">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center space-y-4">
+      <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+      <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Loading admin data...</p>
+    </div>
+  );
 
-  if (currentUser?.role !== 'admin') {
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'rumawatersolutions@gmail.com';
+
+  if (!isAdmin) {
     return (
-      <div className="p-10 text-center space-y-4">
-        <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
-        <h2 className="text-2xl font-black uppercase">Access Denied</h2>
-        <p className="text-gray-500 font-bold">You do not have administrator privileges to view this section.</p>
-        <p className="text-xs text-gray-400">Current Role: {currentUser?.role || 'None'}</p>
+      <div className="p-10 text-center space-y-6 bg-white rounded-[3rem] border border-gray-100 shadow-sm">
+        <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
+          <AlertCircle className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black uppercase tracking-tight text-gray-900">Access Denied</h2>
+          <p className="text-gray-500 font-bold max-w-sm mx-auto">You do not have administrator privileges to view this section.</p>
+        </div>
+        <div className="pt-4 border-t border-gray-100 max-w-xs mx-auto">
+          <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Current Session Details</p>
+          <p className="text-xs text-gray-400 font-bold truncate mt-1">Email: {currentUser?.email || 'N/A'}</p>
+          <p className="text-xs text-indigo-600 font-bold uppercase tracking-widest mt-0.5">Role: {currentUser?.role || 'user'}</p>
+        </div>
+        <button 
+          onClick={() => window.location.href = '/'}
+          className="mt-4 px-8 py-3 bg-gray-900 text-white rounded-2xl font-black text-sm uppercase hover:bg-gray-800 transition-all"
+        >
+          Return Home
+        </button>
       </div>
     );
   }
@@ -253,7 +274,7 @@ export default function AdminSpecialSection() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase flex items-center gap-3">
                 <User className="w-8 h-8 text-indigo-600" />
-                Users
+                Users ({filteredUsers.length})
               </h2>
               <div className="relative w-full md:w-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
