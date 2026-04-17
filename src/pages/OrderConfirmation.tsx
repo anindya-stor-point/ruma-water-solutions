@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { db, safeError } from "../firebase";
+import { db, safeError, getDashboardPath } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import { CheckCircle, Package, Truck, Calendar, ArrowRight, Home, User } from "lucide-react";
 import { motion } from "motion/react";
@@ -73,10 +73,10 @@ export default function OrderConfirmation() {
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('checkout.order_not_found')}</h2>
         <p className="text-gray-600 mb-8 max-w-md mx-auto">{t('checkout.order_not_found_desc')}</p>
-        <Link to="/" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">
+        <button onClick={() => navigate(getDashboardPath())} className="inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">
           <Home className="w-5 h-5" />
           {t('checkout.back_home')}
-        </Link>
+        </button>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function OrderConfirmation() {
         <div className="bg-green-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-100">
           <CheckCircle className="w-12 h-12 text-green-600" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">{t('checkout.order_confirmed')} (Page 5)</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">{t('checkout.order_confirmed')} (Page 6)</h1>
         <p className="text-xl text-gray-600 font-medium">{t('checkout.thank_you').replace('{name}', order.userName.split(' ')[0])}</p>
         <p className="text-gray-500 mt-2">{t('checkout.order_id')}: <span className="font-mono font-bold text-indigo-600">{order.id}</span></p>
       </motion.div>
@@ -156,13 +156,13 @@ export default function OrderConfirmation() {
               <User className="w-5 h-5" />
               {t('checkout.view_orders')}
             </Link>
-            <Link 
-              to="/" 
+            <button 
+              onClick={() => navigate(getDashboardPath())} 
               className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 border-2 border-gray-100 py-4 rounded-2xl font-bold hover:bg-gray-50 transition-all"
             >
               <Home className="w-5 h-5" />
               {t('checkout.continue_shopping')}
-            </Link>
+            </button>
           </div>
 
           {/* Support Info */}

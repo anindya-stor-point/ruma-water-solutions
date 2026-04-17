@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage, Language } from "../context/LanguageContext";
 import CustomerCare from "./CustomerCare";
-import { db, OperationType, handleFirestoreError, safeError, auth, getApiUrl } from "../firebase";
+import { db, OperationType, handleFirestoreError, safeError, auth, getApiUrl, getDashboardPath } from "../firebase";
 import { doc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { APP_VERSION, APP_BUILD_NUMBER, BuildConfig } from "../constants";
 import { 
@@ -158,7 +158,7 @@ export default function Profile() {
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-12">
       <div className="flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold">
+        <button onClick={() => navigate(getDashboardPath())} className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold">
           <ChevronRight className="w-5 h-5 rotate-180" />
           {t('nav.home')}
         </button>
@@ -176,7 +176,7 @@ export default function Profile() {
           <div className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white"></div>
         </div>
         <div>
-          <h1 className="text-3xl font-black text-gray-900">{user.displayName}</h1>
+          <h1 className="text-3xl font-black text-gray-900">{user.displayName} (Page 2)</h1>
           <p className="text-gray-500 font-medium flex items-center justify-center gap-1 mt-1">
             <Mail className="w-4 h-4" />
             {user.email}

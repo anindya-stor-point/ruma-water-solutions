@@ -124,7 +124,7 @@ export default function SpecialSection() {
     <div className="space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-indigo-600 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] text-white shadow-xl shadow-indigo-200">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase mb-1">Special Dashboard</h1>
+          <h1 className="text-4xl font-black tracking-tighter uppercase mb-1">Special Dashboard (Page 1)</h1>
           <p className="text-indigo-100 font-medium flex items-center gap-2">
             <Star className="w-5 h-5 fill-current" />
             Welcome to your exclusive space

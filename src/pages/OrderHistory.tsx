@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { collection, query, where, onSnapshot, orderBy, updateDoc, doc } from "firebase/firestore";
 import { Package, Clock, CheckCircle, Truck, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
-import { db, OperationType, handleFirestoreError } from "../firebase";
+import { db, OperationType, handleFirestoreError, getDashboardPath } from "../firebase";
 import { toast } from "sonner";
 
 interface Order {
@@ -89,7 +89,7 @@ export default function OrderHistory() {
             if (window.history.state && window.history.state.idx > 0) {
               navigate(-1);
             } else {
-              navigate("/", { replace: true });
+              navigate(getDashboardPath(), { replace: true });
             }
           }} 
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -98,7 +98,7 @@ export default function OrderHistory() {
         </button>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <ShoppingBag className="w-10 h-10 text-indigo-600" />
-          {t('orders.title')}
+          {t('orders.title')} (Page 3)
         </h1>
       </div>
 

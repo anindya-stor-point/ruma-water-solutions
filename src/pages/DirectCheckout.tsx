@@ -35,12 +35,7 @@ export default function DirectCheckout() {
   const step = parseInt(stepParam || "2") as 2 | 3 | 4;
 
   const setStep = (newStep: number) => {
-    // Use navigate(-1) for back buttons to ensure proper history stack
-    if (newStep < step) {
-      navigate(-1);
-    } else {
-      navigate(`/checkout/${id}/${newStep}`, { state: location.state });
-    }
+    navigate(`/checkout/${id}/${newStep}`, { state: location.state });
   };
 
   const [product, setProduct] = useState<Product | null>(() => {
@@ -501,7 +496,7 @@ export default function DirectCheckout() {
         {/* STEP 2: Product Details */}
         {step === 2 && (
           <div className="p-4 sm:p-8">
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{t('checkout.product_details')} (Page 2)</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{t('checkout.product_details')} (Page 3)</h2>
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="w-full md:w-1/2">
                   <img 
@@ -597,7 +592,12 @@ export default function DirectCheckout() {
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
-                        navigate(-1);
+                        // Navigate back to product page (Page 1)
+                        if (id) {
+                          navigate(`/product/${id}`, { state: location.state });
+                        } else {
+                          navigate(-1);
+                        }
                       }}
                       className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
                     >
@@ -622,7 +622,7 @@ export default function DirectCheckout() {
               <button onClick={() => setStep(2)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <ArrowLeft className="w-6 h-6 text-gray-600" />
               </button>
-              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.your_details')} (Page 3)</h2>
+              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.your_details')} (Page 4)</h2>
             </div>
               
               <form onSubmit={handleCustomerSubmit} className="space-y-5">
@@ -756,10 +756,17 @@ export default function DirectCheckout() {
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
+                  >
+                    {t('checkout.back')}
+                  </button>
                   <button 
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                    className="w-2/3 bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
                   >
                     {t('checkout.continue_to_payment')}
                   </button>
@@ -775,7 +782,7 @@ export default function DirectCheckout() {
               <button onClick={() => setStep(3)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <ArrowLeft className="w-6 h-6 text-gray-600" />
               </button>
-              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.payment')} (Page 4)</h2>
+              <h2 className="text-2xl font-extrabold text-gray-900">{t('checkout.payment')} (Page 5)</h2>
             </div>
 
               {/* Order Summary removed as per user request */}
@@ -938,11 +945,18 @@ export default function DirectCheckout() {
                   </label>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-6 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="w-1/3 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors"
+                  >
+                    {t('checkout.back')}
+                  </button>
                   <button 
                     type="submit"
                     disabled={isProcessing || (paymentMethod === 'upi' && (!upiAppClicked || utrNumber.length < 8 || !screenshot))}
-                    className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:bg-indigo-400 flex justify-center items-center gap-2"
+                    className="w-2/3 bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:bg-indigo-400 flex justify-center items-center gap-2"
                   >
                     {isProcessing ? (
                       <>

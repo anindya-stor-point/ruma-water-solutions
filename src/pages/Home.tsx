@@ -135,7 +135,7 @@ export default function Home() {
       )}
       <div className="text-center pt-4 md:pt-8 pb-8 md:pb-12 px-4">
         <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-gray-900 mb-4 md:mb-6 tracking-tighter leading-tight">
-          {t('home.hero_title_1')} <span className="text-indigo-700">{t('home.hero_title_2')}</span>
+          {t('home.hero_title_1')} <span className="text-indigo-700">{t('home.hero_title_2')} (Page 1)</span>
         </h1>
         <p className="text-lg md:text-2xl text-gray-600 font-medium max-w-3xl mx-auto leading-relaxed mb-8 md:mb-10">
           {t('home.hero_subtitle')}

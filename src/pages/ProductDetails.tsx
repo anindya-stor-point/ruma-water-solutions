@@ -7,7 +7,7 @@ import { useSocket } from "../context/SocketContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Star, ShoppingCart, Heart, ArrowLeft, Trash2 } from "lucide-react";
 import { doc, getDoc, onSnapshot, collection, query, addDoc, serverTimestamp, orderBy, deleteDoc } from "firebase/firestore";
-import { db, OperationType, handleFirestoreError, safeStringify, safeError } from "../firebase";
+import { db, OperationType, handleFirestoreError, safeStringify, safeError, auth } from "../firebase";
 import ImageModal from "../components/ImageModal";
 import { toast } from "sonner";
 
@@ -225,18 +225,28 @@ export default function ProductDetails() {
     }
   };
 
+  const handleBack = () => {
+    const isSpecial = auth.currentUser ? !!localStorage.getItem(`special_code_${auth.currentUser.uid}`) : false;
+    
+    // If the user came from the Special Dashboard, return there
+    if (location.state?.collection === "specialProducts" || isSpecial) {
+      navigate("/special", { replace: true });
+    } else {
+      // Normal behavior: try to go back or default to home
+      if (window.history.state && window.history.state.idx > 0) {
+        navigate(-1);
+      } else {
+        navigate("/", { replace: true });
+      }
+    }
+  };
+
   if (!product) return <div className="text-center py-20 text-xl font-medium">Loading product...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12">
       <button 
-        onClick={() => {
-          if (window.history.state && window.history.state.idx > 0) {
-            navigate(-1);
-          } else {
-            navigate("/", { replace: true });
-          }
-        }} 
+        onClick={handleBack} 
         className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 font-bold transition-colors group"
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -268,7 +278,7 @@ export default function ProductDetails() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-indigo-600 font-bold uppercase tracking-widest text-sm mb-2">{product.category}</p>
-                <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">{product.name} (Page 1)</h1>
+                <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">{product.name} (Page 2)</h1>
                 {product.barcode && (
                   <div className="flex items-center gap-2 mt-2 text-gray-400 font-mono text-xs bg-gray-50 w-fit px-2 py-1 rounded border border-gray-100">
                     <span className="font-bold uppercase tracking-tighter text-[10px]">Barcode:</span>

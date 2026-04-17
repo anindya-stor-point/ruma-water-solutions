@@ -191,6 +191,16 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 }
 
 /**
+ * Returns the correct dashboard path for the current user (Normal or Special).
+ */
+export const getDashboardPath = () => {
+  const user = auth.currentUser;
+  if (!user) return "/";
+  const specialCode = localStorage.getItem(`special_code_${user.uid}`);
+  return specialCode ? "/special" : "/";
+};
+
+/**
  * Gets the absolute API URL, ensuring compatibility with Capacitor/Mobile.
  */
 export const getApiUrl = (path: string) => {

@@ -4,6 +4,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Heart, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
+import { getDashboardPath } from "../firebase";
 
 export default function Wishlist() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function Wishlist() {
             if (window.history.state && window.history.state.idx > 0) {
               navigate(-1);
             } else {
-              navigate("/", { replace: true });
+              navigate(getDashboardPath(), { replace: true });
             }
           }} 
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -34,7 +35,7 @@ export default function Wishlist() {
         </button>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <Heart className="w-10 h-10 text-red-500 fill-current" />
-          {t('wishlist.title')}
+          {t('wishlist.title')} (Page 3)
         </h1>
       </div>
 

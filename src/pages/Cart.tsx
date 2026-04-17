@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Trash2, Plus, Minus, CreditCard, ShoppingCart, X, ArrowRight, ArrowLeft, Heart, ShoppingBag, ScanLine } from "lucide-react";
 import { collection, addDoc, doc, updateDoc, getDoc } from "firebase/firestore";
-import { db, safeStringify, safeError } from "../firebase";
+import { db, safeStringify, safeError, getDashboardPath } from "../firebase";
 import { toast } from "sonner";
 
 interface Product {
@@ -118,14 +118,14 @@ export default function Cart() {
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-12">
       <div className="flex items-center justify-between">
         <button 
-          onClick={() => navigate("/")} 
+          onClick={() => navigate(getDashboardPath())} 
           className="flex items-center gap-4 hover:opacity-80 transition-opacity text-left group"
           aria-label="Go back"
         >
           <div className="p-2 group-hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6 text-gray-600" />
           </div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Menu</h1>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Menu (Page 2)</h1>
         </button>
       </div>
       
